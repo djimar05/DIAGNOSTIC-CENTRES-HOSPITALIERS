@@ -3,16 +3,13 @@ import { Alert, Button, Group, Modal, SegmentedControl, Select, SimpleGrid, Stac
 import { useForm } from '@mantine/form';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconAlertCircle } from '@tabler/icons-react';
-import { useCentres, useZones } from '../../api/referentiel';
+import { useCentres } from '../../api/referentiel';
 import { useCreerAffectation } from '../../api/utilisateurs';
 import { useAuth } from '../../auth/AuthProvider';
+import SelectZone from '../../composants/SelectZone';
 import { LIBELLES_ROLES, ROLES, ROLES_DELEGABLES } from '../../constantes/roles';
 import { messageErreur, notifierSucces } from '../../utils/erreurs';
 import { versChampDate } from '../../utils/format';
-
-const NIVEAUX_ZONE = [
-  ['NATIONAL', 'National'], ['REGION', 'Régions'], ['DISTRICT', 'Districts'], ['ZONE_RESPONSABILITE', 'Zones de responsabilité'],
-];
 
 const valeursInitiales = () => ({
   role: null, perimetre: 'ZONE', zone: null, centre: null, dateDebut: versChampDate(new Date()), dateFin: '',
@@ -57,15 +54,6 @@ export default function ModaleAffectation({ ouvert, onFermer, utilisateurId }) {
     { value: 'ZONE', label: 'Zone' },
     { value: 'CENTRE', label: 'Centre' },
   ].map((o) => ({ ...o, disabled: role === 'RESPONSABLE_CENTRE' && o.value !== 'CENTRE' }));
-
-  // Zones groupées par niveau
-  const { data: zones = [], isPending: chargementZones } = useZones();
-  const optionsZones = useMemo(() => NIVEAUX_ZONE
-    .map(([niveau, groupe]) => ({
-      group: groupe,
-      items: zones.filter((z) => z.niveau === niveau).map((z) => ({ value: z._id, label: `${z.nom} (${z.code})` })),
-    }))
-    .filter((g) => g.items.length), [zones]);
 
   // Centres : recherche côté serveur (il peut y en avoir des milliers)
   const [rechercheCentre, setRechercheCentre] = useState('');
@@ -114,14 +102,10 @@ export default function ModaleAffectation({ ouvert, onFermer, utilisateurId }) {
             <Text size="sm" c="dimmed">Accès à tout le pays.</Text>
           )}
           {perimetre === 'ZONE' && (
-            <Select
+            <SelectZone
               label="Zone"
               description="La zone choisie et toutes celles qui en dépendent"
               withAsterisk
-              searchable
-              nothingFoundMessage="Aucune zone"
-              placeholder={chargementZones ? 'Chargement…' : 'Rechercher une zone'}
-              data={optionsZones}
               {...form.getInputProps('zone')}
             />
           )}

@@ -114,6 +114,20 @@ describe('client API', () => {
     expect(jetons.lireRefreshToken()).toBe('refresh-0');
   });
 
+  it('envoie un fichier en multipart (sans Content-Type JSON) et télécharge un fichier', async () => {
+    const fetchMock = vi.fn(async (url, options) => (url.endsWith('/modele')
+      ? new Response('contenu', { status: 200, headers: { 'Content-Disposition': 'attachment; filename="modele.xlsx"' } })
+      : json(200, { success: true, data: { recu: options.body instanceof FormData, type: options.headers['Content-Type'] } })));
+    vi.stubGlobal('fetch', fetchMock);
+    jetons.enregistrer({ accessToken: 'acces', refreshToken: 'refresh' });
+
+    const envoi = await client.api.envoyerFichier('/import', { fichier: new Blob(['x']) });
+    expect(envoi.data).toEqual({ recu: true });
+    const fichier = await client.api.telecharger('/modele');
+    expect(fichier.nomFichier).toBe('modele.xlsx');
+    expect(await fichier.blob.text()).toBe('contenu');
+  });
+
   it('convertit les erreurs de l\'API en ErreurApi', async () => {
     const etat = fauxBackend();
     etat.valides.add('acces-initial');

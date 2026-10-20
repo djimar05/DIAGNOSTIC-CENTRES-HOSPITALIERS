@@ -25,8 +25,9 @@ const couleurAction = (action) => {
 /** Lien vers l'objet concerné quand un écran existe pour lui. */
 function Entite({ entite }) {
   if (!entite?.modele) return <Text size="sm" c="dimmed">—</Text>;
-  if (entite.modele === 'Utilisateur') {
-    return <Anchor component={Link} to={`/utilisateurs/${entite.id}`} size="sm">Utilisateur</Anchor>;
+  const liens = { Utilisateur: `/utilisateurs/${entite.id}`, Centre: `/centres/${entite.id}`, Zone: '/zones' };
+  if (liens[entite.modele]) {
+    return <Anchor component={Link} to={liens[entite.modele]} size="sm">{entite.modele}</Anchor>;
   }
   return <Text size="sm">{entite.modele}</Text>;
 }

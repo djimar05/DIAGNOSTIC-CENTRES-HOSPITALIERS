@@ -14,6 +14,10 @@ const ProfilPage = lazy(() => import('./pages/compte/ProfilPage'));
 const UtilisateursPage = lazy(() => import('./pages/utilisateurs/UtilisateursPage'));
 const FicheUtilisateurPage = lazy(() => import('./pages/utilisateurs/FicheUtilisateurPage'));
 const JournalPage = lazy(() => import('./pages/journal/JournalPage'));
+const ZonesPage = lazy(() => import('./pages/zones/ZonesPage'));
+const CentresPage = lazy(() => import('./pages/centres/CentresPage'));
+const FicheCentrePage = lazy(() => import('./pages/centres/FicheCentrePage'));
+const ImportCentresPage = lazy(() => import('./pages/centres/ImportCentresPage'));
 
 export const router = createBrowserRouter([
   { path: '/connexion', element: <ConnexionPage />, errorElement: <PageErreur /> },
@@ -28,6 +32,15 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AccueilPage /> },
           { path: 'profil', element: <ProfilPage /> },
+          { path: 'centres', element: <CentresPage /> },
+          { path: 'centres/:id', element: <FicheCentrePage /> },
+          {
+            element: <RouteProtegee roles={['ADMINISTRATEUR']} />,
+            children: [
+              { path: 'centres/import', element: <ImportCentresPage /> },
+              { path: 'zones', element: <ZonesPage /> },
+            ],
+          },
           {
             element: <RouteProtegee roles={rolesDe('/utilisateurs')} />,
             children: [

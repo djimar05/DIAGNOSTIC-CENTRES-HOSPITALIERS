@@ -39,6 +39,11 @@ export const LIBELLES_ACTIONS = {
   AFFECTATION_CREEE: 'Affectation créée',
   AFFECTATION_MODIFIEE: 'Affectation modifiée',
   AFFECTATION_RETIREE: 'Affectation retirée',
+  ZONE_CREEE: 'Zone créée',
+  ZONE_MODIFIEE: 'Zone modifiée',
+  CENTRE_CREE: 'Centre créé',
+  CENTRE_MODIFIE: 'Centre modifié',
+  CENTRES_IMPORTES: 'Import de centres',
 };
 
 export const libelleAction = (action) => LIBELLES_ACTIONS[action] || action;

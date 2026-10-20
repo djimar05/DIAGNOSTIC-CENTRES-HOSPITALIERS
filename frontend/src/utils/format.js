@@ -9,4 +9,8 @@ export const versChampDate = (iso) => (iso ? new Date(iso).toISOString().slice(0
 
 export const nomComplet = (u) => (u ? [u.prenom, u.nom].filter(Boolean).join(' ') : '');
 
+/** Pour comparer des textes saisis : minuscules, sans accents. */
+export const normaliserRecherche = (texte) => String(texte || '')
+  .normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 export const initiales = (u) => `${u?.prenom?.[0] || ''}${u?.nom?.[0] || ''}`.toUpperCase();
