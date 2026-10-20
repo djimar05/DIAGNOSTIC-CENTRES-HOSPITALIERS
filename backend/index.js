@@ -11,6 +11,7 @@ const affectationRoutes = require('./routes/affectationRoutes');
 const journalRoutes = require('./routes/journalRoutes');
 const zoneRoutes = require('./routes/zoneRoutes');
 const centreRoutes = require('./routes/centreRoutes');
+const grilleRoutes = require('./routes/grilleRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,7 @@ app.use('/api/affectations', connecte, affectationRoutes);
 app.use('/api/journal', connecte, journalRoutes);
 app.use('/api/zones', connecte, zoneRoutes);
 app.use('/api/centres', connecte, centreRoutes);
+app.use('/api/grilles', connecte, grilleRoutes);
 
 // Route inexistante -> 404 normalisée
 app.use(notFound);

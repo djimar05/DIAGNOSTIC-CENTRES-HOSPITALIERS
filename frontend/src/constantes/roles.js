@@ -44,6 +44,11 @@ export const LIBELLES_ACTIONS = {
   CENTRE_CREE: 'Centre créé',
   CENTRE_MODIFIE: 'Centre modifié',
   CENTRES_IMPORTES: 'Import de centres',
+  GRILLE_CREEE: 'Grille créée',
+  GRILLE_IMPORTEE: 'Grille importée',
+  GRILLE_PUBLIEE: 'Grille publiée',
+  GRILLE_ARCHIVEE: 'Grille archivée',
+  GRILLE_SUPPRIMEE: 'Brouillon de grille supprimé',
 };
 
 export const libelleAction = (action) => LIBELLES_ACTIONS[action] || action;

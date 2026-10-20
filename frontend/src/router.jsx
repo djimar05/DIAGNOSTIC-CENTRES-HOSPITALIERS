@@ -18,6 +18,8 @@ const ZonesPage = lazy(() => import('./pages/zones/ZonesPage'));
 const CentresPage = lazy(() => import('./pages/centres/CentresPage'));
 const FicheCentrePage = lazy(() => import('./pages/centres/FicheCentrePage'));
 const ImportCentresPage = lazy(() => import('./pages/centres/ImportCentresPage'));
+const GrillesPage = lazy(() => import('./pages/grilles/GrillesPage'));
+const EditeurGrillePage = lazy(() => import('./pages/grilles/EditeurGrillePage'));
 
 export const router = createBrowserRouter([
   { path: '/connexion', element: <ConnexionPage />, errorElement: <PageErreur /> },
@@ -39,6 +41,8 @@ export const router = createBrowserRouter([
             children: [
               { path: 'centres/import', element: <ImportCentresPage /> },
               { path: 'zones', element: <ZonesPage /> },
+              { path: 'grilles', element: <GrillesPage /> },
+              { path: 'grilles/:id', element: <EditeurGrillePage /> },
             ],
           },
           {
