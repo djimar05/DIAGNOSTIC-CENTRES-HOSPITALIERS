@@ -15,4 +15,15 @@ const proteger = async (req, res, next) => {
   next();
 };
 
-module.exports = { proteger };
+/**
+ * Bloque l'accès tant que l'utilisateur garde un mot de passe temporaire (fixé par un administrateur).
+ * À placer après proteger sur les routes métier ; /api/auth reste accessible pour changer le mot de passe.
+ */
+const exigerMotDePasseAJour = (req, res, next) => {
+  if (req.utilisateur.motDePasseAChanger) {
+    throw ApiError.forbidden('Vous devez remplacer votre mot de passe temporaire avant de continuer');
+  }
+  next();
+};
+
+module.exports = { proteger, exigerMotDePasseAJour };

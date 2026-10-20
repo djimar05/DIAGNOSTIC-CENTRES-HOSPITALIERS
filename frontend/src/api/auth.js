@@ -23,4 +23,13 @@ export const deconnexion = async () => {
 /** Profil connecté, avec affectations et rôles. */
 export const moi = async () => (await api.get('/auth/moi')).data;
 
+/** Modifie ses préférences (langue). Renvoie le profil à jour. */
+export const mettreAJourMoi = async (donnees) => (await api.patch('/auth/moi', donnees)).data;
+
+export const changerMotDePasse = (ancienMotDePasse, nouveauMotDePasse) => (
+  api.patch('/auth/mot-de-passe', { ancienMotDePasse, nouveauMotDePasse })
+);
+
+export const deconnexionPartout = () => api.post('/auth/deconnexion-partout');
+
 export const aUneSession = () => Boolean(jetons.lireRefreshToken());

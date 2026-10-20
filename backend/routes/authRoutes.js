@@ -12,6 +12,7 @@ router.post('/deconnexion', limiteurAuth, controller.deconnexion);   // { "refre
 
 // Routes réservées à l'utilisateur connecté (Authorization: Bearer <accessToken>)
 router.get('/moi', proteger, controller.moi);
+router.patch('/moi', proteger, controller.mettreAJourMoi); // { "langue": "fr" | "ar" }
 router.post('/deconnexion-partout', proteger, controller.deconnexionPartout);
 router.patch('/mot-de-passe', proteger, controller.changerMonMotDePasse); // { "ancienMotDePasse", "nouveauMotDePasse" }
 

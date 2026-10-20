@@ -51,7 +51,7 @@ Le seed est refusé quand `NODE_ENV=production`. Pour créer le premier administ
 ## Tests
 
 ```bash
-cd backend && npm test      # modèles, seed, utilisateurs, authentification, droits (MongoDB en mémoire)
+cd backend && npm test      # modèles, seed, utilisateurs, authentification, droits, comptes (MongoDB en mémoire)
 cd frontend && npm test     # client API (rafraîchissement du jeton, erreurs)
 ```
 

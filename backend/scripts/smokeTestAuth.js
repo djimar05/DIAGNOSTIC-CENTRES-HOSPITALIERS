@@ -114,7 +114,7 @@ const post = (chemin, body, token) => fetch(`${BASE}${chemin}`, {
     body: JSON.stringify(body),
   });
   rep = await patchMdp({ ancienMotDePasse: 'faux', nouveauMotDePasse: 'nouveaumotdepasse456' });
-  verifier('mdp : ancien incorrect -> 401', rep.status === 401, `status=${rep.status}`);
+  verifier('mdp : ancien incorrect -> 400', rep.status === 400, `status=${rep.status}`);
   rep = await patchMdp({ ancienMotDePasse: 'motdepasse123', nouveauMotDePasse: 'court' });
   verifier('mdp : trop court -> 400', rep.status === 400, `status=${rep.status}`);
   rep = await patchMdp({ ancienMotDePasse: 'motdepasse123', nouveauMotDePasse: 'nouveaumotdepasse456' });

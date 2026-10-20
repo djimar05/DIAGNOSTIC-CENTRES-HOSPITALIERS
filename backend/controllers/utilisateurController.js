@@ -7,7 +7,8 @@ const { journaliser } = require('../services/journalService');
 const entite = (id) => ({ modele: 'Utilisateur', id });
 
 const creer = async (req, res) => {
-  const utilisateur = await utilisateurService.creerUtilisateur(req.body);
+  // Mot de passe choisi par l'administrateur : l'utilisateur devra le remplacer à sa première connexion
+  const utilisateur = await utilisateurService.creerUtilisateur(req.body, { motDePasseAChanger: true });
   await journaliser(req, {
     action: 'UTILISATEUR_CREE', entite: entite(utilisateur._id), details: { telephone: utilisateur.telephone },
   });

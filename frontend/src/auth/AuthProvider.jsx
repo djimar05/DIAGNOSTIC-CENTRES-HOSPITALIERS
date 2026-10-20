@@ -42,6 +42,25 @@ export function AuthProvider({ children }) {
     queryClient.clear();
   }, [queryClient]);
 
+  /** Ferme les sessions sur tous les appareils, y compris celui-ci. */
+  const deconnecterPartout = useCallback(async () => {
+    await authApi.deconnexionPartout();
+    await deconnecter();
+  }, [deconnecter]);
+
+  /**
+   * Le serveur ferme toutes les sessions après un changement de mot de passe :
+   * on se reconnecte aussitôt avec le nouveau, pour que l'utilisateur n'ait rien à ressaisir.
+   */
+  const changerMotDePasse = useCallback(async (ancienMotDePasse, nouveauMotDePasse) => {
+    await authApi.changerMotDePasse(ancienMotDePasse, nouveauMotDePasse);
+    await connecter(utilisateur.telephone, nouveauMotDePasse);
+  }, [connecter, utilisateur]);
+
+  const mettreAJourProfil = useCallback(async (donnees) => {
+    queryClient.setQueryData(CLE_MOI, await authApi.mettreAJourMoi(donnees));
+  }, [queryClient]);
+
   const valeur = useMemo(() => ({
     utilisateur: session ? utilisateur : null,
     chargement: session && isLoading,
@@ -49,8 +68,12 @@ export function AuthProvider({ children }) {
     recharger: refetch,
     connecter,
     deconnecter,
+    deconnecterPartout,
+    changerMotDePasse,
+    mettreAJourProfil,
     aLeRole: (...roles) => Boolean(utilisateur?.roles?.some((r) => roles.includes(r))),
-  }), [session, utilisateur, isLoading, error, refetch, connecter, deconnecter]);
+  }), [session, utilisateur, isLoading, error, refetch, connecter, deconnecter, deconnecterPartout,
+    changerMotDePasse, mettreAJourProfil]);
 
   return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>;
 }
