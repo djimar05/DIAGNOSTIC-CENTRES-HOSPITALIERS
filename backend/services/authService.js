@@ -130,14 +130,20 @@ const changerMonMotDePasse = async (utilisateurId, { ancienMotDePasse, nouveauMo
   if (String(nouveauMotDePasse).length < 8) {
     throw ApiError.badRequest('Le nouveau mot de passe doit contenir au moins 8 caractères');
   }
+  if (String(nouveauMotDePasse) === String(ancienMotDePasse)) {
+    throw ApiError.badRequest("Le nouveau mot de passe doit être différent de l'ancien");
+  }
 
   const utilisateur = await Utilisateur.findById(utilisateurId).select('+motDePasseHash');
   if (!utilisateur) throw ApiError.notFound('Utilisateur non trouvé');
 
+  // 400 et non 401 : la session est valide, c'est la saisie qui est fausse
+  // (un 401 ferait croire au client que son jeton a expiré)
   const valide = await bcrypt.compare(String(ancienMotDePasse), utilisateur.motDePasseHash);
-  if (!valide) throw ApiError.unauthorized('Ancien mot de passe incorrect');
+  if (!valide) throw ApiError.badRequest('Ancien mot de passe incorrect');
 
   utilisateur.motDePasseHash = await bcrypt.hash(String(nouveauMotDePasse), ROUNDS_BCRYPT);
+  utilisateur.motDePasseAChanger = false;
   await utilisateur.save();
   await revoquerToutesLesSessions(utilisateur._id);
 };

@@ -27,6 +27,9 @@ const UtilisateurSchema = new Schema({
   email: { type: String, lowercase: true, unique: true, sparse: true },
   fonction: String,            // ex. médecin-chef de district
   motDePasseHash: { type: String, required: true, select: false }, // jamais renvoyé par défaut
+  // true quand le mot de passe a été fixé par un administrateur (création, réinitialisation) :
+  // l'utilisateur doit le changer avant d'accéder au reste de l'API.
+  motDePasseAChanger: { type: Boolean, default: false },
   langue: { type: String, enum: ['fr', 'ar'], default: 'fr' },
   actif: { type: Boolean, default: true },
   derniereConnexion: Date,

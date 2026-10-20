@@ -1,12 +1,12 @@
+import { Suspense } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
-import { AppShell, Avatar, Burger, Group, Menu, NavLink, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
+import { AppShell, Avatar, Burger, Center, Group, Loader, Menu, NavLink, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { IconChevronDown, IconLogout, IconPlus } from '@tabler/icons-react';
+import { IconChevronDown, IconLogout, IconPlus, IconUserCircle } from '@tabler/icons-react';
 import { useAuth } from '../auth/AuthProvider';
 import { libelleRole } from '../constantes/roles';
+import { initiales } from '../utils/format';
 import { NAVIGATION } from './navigation';
-
-const initiales = ({ prenom, nom }) => `${prenom?.[0] || ''}${nom?.[0] || ''}`.toUpperCase();
 
 export default function AppLayout() {
   const [menuOuvert, { toggle, close }] = useDisclosure();
@@ -53,6 +53,10 @@ export default function AppLayout() {
             </Menu.Target>
             <Menu.Dropdown>
               <Menu.Label>{utilisateur.telephone}</Menu.Label>
+              <Menu.Item component={Link} to="/profil" leftSection={<IconUserCircle size={16} />}>
+                Mon profil
+              </Menu.Item>
+              <Menu.Divider />
               <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={seDeconnecter}>
                 Se déconnecter
               </Menu.Item>
@@ -76,7 +80,10 @@ export default function AppLayout() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Outlet />
+        {/* Les écrans sont chargés à la demande (voir router.jsx) */}
+        <Suspense fallback={<Center p="xl"><Loader /></Center>}>
+          <Outlet />
+        </Suspense>
       </AppShell.Main>
     </AppShell>
   );

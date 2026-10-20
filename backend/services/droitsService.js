@@ -16,15 +16,19 @@ const Zone = require('../models/Zone');
 const memeId = (a, b) => String(a) === String(b);
 const estNationale = (a) => !a.zone && !a.centre;
 
-/** Affectations actives d'un utilisateur. `peupler` ajoute le code et le nom des zones / centres. */
-const affectationsActives = (utilisateurId, { peupler = false } = {}) => {
+/** Conditions MongoDB d'une affectation active à l'instant présent. */
+const conditionsActives = () => {
   const maintenant = new Date();
-  const requete = Affectation.find({
-    utilisateur: utilisateurId,
+  return {
     actif: true,
     dateDebut: { $lte: maintenant },
     $or: [{ dateFin: null }, { dateFin: { $gt: maintenant } }],
-  }).lean();
+  };
+};
+
+/** Affectations actives d'un utilisateur. `peupler` ajoute le code et le nom des zones / centres. */
+const affectationsActives = (utilisateurId, { peupler = false } = {}) => {
+  const requete = Affectation.find({ utilisateur: utilisateurId, ...conditionsActives() }).lean();
   if (peupler) requete.populate('zone', 'code nom niveau').populate('centre', 'code nom');
   return requete;
 };
@@ -32,8 +36,8 @@ const affectationsActives = (utilisateurId, { peupler = false } = {}) => {
 /**
  * Filtre MongoDB limitant une requête au périmètre des affectations données.
  * Les documents filtrés doivent porter un tableau de zones ancêtres (zone incluse) et/ou un centre.
- *   filtrePerimetre(affectations)                               → pour Centre, Evaluation…
- *   filtrePerimetre(affectations, { champZone: 'ancetres' })    → pour Zone (sous-arbre)
+ *   filtrePerimetre(affectations)                               → pour Evaluation, Mission, ActionCorrective…
+ *   filtrePerimetre(affectations, { champCentre: '_id' })       → pour Centre (le centre est le document)
  */
 const filtrePerimetre = (affectations, { champZone = 'zoneAncetres', champCentre = 'centre' } = {}) => {
   if (affectations.some(estNationale)) return {};
@@ -59,4 +63,4 @@ const zonesDuPerimetre = async (affectations) => {
   return Zone.find({ $or: [{ _id: { $in: racines } }, { ancetres: { $in: racines } }] }).distinct('_id');
 };
 
-module.exports = { affectationsActives, filtrePerimetre, zoneDansPerimetre, zonesDuPerimetre, memeId };
+module.exports = { conditionsActives, affectationsActives, filtrePerimetre, zoneDansPerimetre, zonesDuPerimetre, memeId };

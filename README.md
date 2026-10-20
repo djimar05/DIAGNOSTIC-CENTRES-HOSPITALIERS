@@ -45,13 +45,16 @@ Après `npm run seed`, tous les comptes ont le mot de passe **`Demo2026!`** :
 | +235660000105 | Responsable de centre | CS Quartier Nord |
 | +235660000106 | Partenaire | National |
 
+Le seed publie aussi une grille de démonstration ([backend/donnees/grille-demo.json](backend/donnees/grille-demo.json),
+10 domaines aux poids du cahier des charges) ; ce n'est pas la grille officielle, qui s'importe depuis l'écran Grilles.
+
 Le seed est refusé quand `NODE_ENV=production`. Pour créer le premier administrateur d'une base réelle :
 `npm run creer-utilisateur -- <nom> <telephone> <motDePasse> [email]`.
 
 ## Tests
 
 ```bash
-cd backend && npm test      # modèles, seed, utilisateurs, authentification, droits (MongoDB en mémoire)
+cd backend && npm test      # modèles, seed, comptes, droits, référentiel… (MongoDB en mémoire)
 cd frontend && npm test     # client API (rafraîchissement du jeton, erreurs)
 ```
 

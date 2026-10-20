@@ -39,6 +39,12 @@ const verifier = (nom, condition, extra = '') => {
   verifier('un compte par profil sans doublon', nbUtilisateurs === COMPTES_DEMO.length, `n=${nbUtilisateurs}`);
   verifier('une affectation par compte sans doublon', nbAffectations === COMPTES_DEMO.length, `n=${nbAffectations}`);
 
+  const Grille = require('../models/Grille');
+  const grilles = await Grille.find().lean();
+  verifier('grille de démonstration publiée, sans doublon', grilles.length === 1 && grilles[0].statut === 'PUBLIEE');
+  verifier('grille : 10 domaines dont les poids font 100', grilles[0].domaines.length === 10
+    && grilles[0].domaines.reduce((s, d) => s + d.poids, 0) === 100);
+
   const roles = await Affectation.distinct('role');
   verifier('les 7 rôles sont représentés', roles.length === 7, roles.join(','));
 

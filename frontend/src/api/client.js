@@ -26,8 +26,17 @@ export const surDeconnexionForcee = (ecouteur) => {
   return () => ecouteursDeconnexion.delete(ecouteur);
 };
 
-const lireReponse = async (reponse) => {
+/** Nom proposé par le serveur (Content-Disposition: attachment; filename="…"). */
+const nomDuFichier = (reponse) => {
+  const entete = reponse.headers.get('content-disposition') || '';
+  const nom = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(entete)?.[1];
+  return nom ? decodeURIComponent(nom) : null;
+};
+
+/** format 'json' (défaut) → corps JSON ; format 'blob' → { blob, nomFichier } pour un téléchargement. */
+const lireReponse = async (reponse, format = 'json') => {
   if (reponse.status === 204) return null;
+  if (reponse.ok && format === 'blob') return { blob: await reponse.blob(), nomFichier: nomDuFichier(reponse) };
   const corps = await reponse.json().catch(() => null);
   if (!reponse.ok) {
     throw new ErreurApi(reponse.status, corps?.error?.message || `Erreur ${reponse.status}`, corps?.error?.details);
@@ -77,10 +86,13 @@ export const rafraichirJetons = () => {
 };
 
 /**
- * Appelle l'API. `corps` est envoyé en JSON. `authentifie: false` pour les routes publiques.
+ * Appelle l'API. `corps` est envoyé en JSON, `formulaire` (FormData) en multipart pour un fichier.
+ * `authentifie: false` pour les routes publiques ; `format: 'blob'` pour télécharger un fichier.
  * Renvoie le corps JSON de la réponse ({ success, data, pagination… }) ou null pour un 204.
  */
-export const requete = async (chemin, { methode = 'GET', corps, authentifie = true } = {}) => {
+export const requete = async (chemin, {
+  methode = 'GET', corps, formulaire, authentifie = true, format = 'json',
+} = {}) => {
   if (authentifie && !jetons.lireAccessToken() && jetons.lireRefreshToken()) {
     await rafraichirJetons(); // page rechargée : l'access token (en mémoire) est à redemander
   }
@@ -89,11 +101,13 @@ export const requete = async (chemin, { methode = 'GET', corps, authentifie = tr
     const token = authentifie ? jetons.lireAccessToken() : null;
     const promesse = fetch(`${BASE}${chemin}`, {
       method: methode,
+      // Pas de Content-Type pour un FormData : le navigateur ajoute lui-même la frontière multipart
       headers: {
         ...(corps !== undefined && { 'Content-Type': 'application/json' }),
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       ...(corps !== undefined && { body: JSON.stringify(corps) }),
+      ...(formulaire && { body: formulaire }),
     });
     return { token, promesse };
   };
@@ -108,7 +122,17 @@ export const requete = async (chemin, { methode = 'GET', corps, authentifie = tr
     reponse = await promesse;
   }
 
-  return lireReponse(reponse);
+  return lireReponse(reponse, format);
+};
+
+/** { page: 2, recherche: '', role: 'EVALUATEUR' } → "?page=2&role=EVALUATEUR" (valeurs vides ignorées). */
+export const versQuery = (params = {}) => {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([cle, valeur]) => {
+    if (valeur !== undefined && valeur !== null && valeur !== '') q.set(cle, valeur);
+  });
+  const texte = q.toString();
+  return texte ? `?${texte}` : '';
 };
 
 export const api = {
@@ -117,4 +141,22 @@ export const api = {
   put: (chemin, corps) => requete(chemin, { methode: 'PUT', corps }),
   patch: (chemin, corps) => requete(chemin, { methode: 'PATCH', corps }),
   delete: (chemin) => requete(chemin, { methode: 'DELETE' }),
+  /** Envoie un fichier : envoyerFichier('/centres/import', { fichier: File }) */
+  envoyerFichier: (chemin, champs) => {
+    const formulaire = new FormData();
+    Object.entries(champs).forEach(([cle, valeur]) => formulaire.append(cle, valeur));
+    return requete(chemin, { methode: 'POST', formulaire });
+  },
+  /** Télécharge un fichier : renvoie { blob, nomFichier }. */
+  telecharger: (chemin) => requete(chemin, { format: 'blob' }),
+};
+
+/** Propose au navigateur d'enregistrer un fichier reçu de l'API. */
+export const enregistrerFichier = ({ blob, nomFichier }, nomParDefaut = 'fichier') => {
+  const url = URL.createObjectURL(blob);
+  const lien = Object.assign(document.createElement('a'), { href: url, download: nomFichier || nomParDefaut });
+  document.body.appendChild(lien);
+  lien.click();
+  lien.remove();
+  URL.revokeObjectURL(url);
 };
