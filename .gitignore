@@ -17,6 +17,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Documents de travail internes (non versionnés)
+PLAN_DE_TRAVAIL.md
+
 # Éditeurs
 .vscode/*
 !.vscode/extensions.json

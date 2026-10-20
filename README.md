@@ -7,7 +7,6 @@ calcul des scores, suivi des actions correctives et tableaux de bord.
 |---|---|
 | [backend/](backend/) | API REST – Node.js, Express 5, MongoDB (Mongoose), JWT |
 | [frontend/](frontend/) | Application web – React, Vite, Mantine, React Router, TanStack Query |
-| [PLAN_DE_TRAVAIL.md](PLAN_DE_TRAVAIL.md) | API et écrans à réaliser, étapes et avancement |
 
 ## Prérequis
 
