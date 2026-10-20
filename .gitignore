@@ -1,0 +1,23 @@
+# Dépendances
+node_modules/
+
+# Variables d'environnement (secrets) – seuls les .env.example sont commités
+.env
+.env.*
+!.env.example
+
+# Builds
+dist/
+build/
+coverage/
+
+# Journaux et fichiers système
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Éditeurs
+.vscode/*
+!.vscode/extensions.json
+.idea/
