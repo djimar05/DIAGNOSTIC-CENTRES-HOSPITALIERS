@@ -3,9 +3,12 @@ import { Alert, Button, Center, Loader, Stack } from '@mantine/core';
 import { IconWifiOff } from '@tabler/icons-react';
 import { useAuth } from './AuthProvider';
 
+export const CHEMIN_MOT_DE_PASSE_TEMPORAIRE = '/changer-mot-de-passe';
+
 /**
  * Réserve les routes enfants aux utilisateurs connectés.
  * `roles` (facultatif) : au moins un de ces rôles est exigé, sinon retour à l'accueil.
+ * Un utilisateur au mot de passe temporaire est envoyé vers l'écran de changement.
  */
 export default function RouteProtegee({ roles }) {
   const { utilisateur, chargement, erreur, recharger, aLeRole } = useAuth();
@@ -31,6 +34,10 @@ export default function RouteProtegee({ roles }) {
 
   if (!utilisateur) {
     return <Navigate to="/connexion" replace state={{ depuis: location }} />;
+  }
+
+  if (utilisateur.motDePasseAChanger && location.pathname !== CHEMIN_MOT_DE_PASSE_TEMPORAIRE) {
+    return <Navigate to={CHEMIN_MOT_DE_PASSE_TEMPORAIRE} replace />;
   }
 
   if (roles && !aLeRole(...roles)) {

@@ -36,10 +36,23 @@ const moi = async (req, res) => {
   res.json({ success: true, data: { ...req.utilisateur.toJSON(), affectations, roles } });
 };
 
+// Champs que l'utilisateur peut modifier lui-même. Son identité (nom, téléphone…) est gérée par l'administrateur.
+const CHAMPS_MON_PROFIL = ['langue'];
+
+const mettreAJourMoi = async (req, res) => {
+  for (const champ of CHAMPS_MON_PROFIL) {
+    if (typeof req.body[champ] !== 'undefined') req.utilisateur[champ] = req.body[champ];
+  }
+  await req.utilisateur.save();
+  await moi(req, res);
+};
+
 const changerMonMotDePasse = async (req, res) => {
   await authService.changerMonMotDePasse(req.utilisateur._id, req.body);
   await journaliser(req, { action: 'MOT_DE_PASSE_CHANGE' });
   res.json({ success: true, message: 'Mot de passe mis à jour, veuillez vous reconnecter' });
 };
 
-module.exports = { connexion, rafraichir, deconnexion, deconnexionPartout, moi, changerMonMotDePasse };
+module.exports = {
+  connexion, rafraichir, deconnexion, deconnexionPartout, moi, mettreAJourMoi, changerMonMotDePasse,
+};

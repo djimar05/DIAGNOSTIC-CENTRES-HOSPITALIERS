@@ -111,6 +111,16 @@ export const requete = async (chemin, { methode = 'GET', corps, authentifie = tr
   return lireReponse(reponse);
 };
 
+/** { page: 2, recherche: '', role: 'EVALUATEUR' } → "?page=2&role=EVALUATEUR" (valeurs vides ignorées). */
+export const versQuery = (params = {}) => {
+  const q = new URLSearchParams();
+  Object.entries(params).forEach(([cle, valeur]) => {
+    if (valeur !== undefined && valeur !== null && valeur !== '') q.set(cle, valeur);
+  });
+  const texte = q.toString();
+  return texte ? `?${texte}` : '';
+};
+
 export const api = {
   get: (chemin) => requete(chemin),
   post: (chemin, corps) => requete(chemin, { methode: 'POST', corps }),

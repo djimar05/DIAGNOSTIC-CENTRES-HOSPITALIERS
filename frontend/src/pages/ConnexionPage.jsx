@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router';
-import { Alert, Button, Center, Code, Paper, PasswordInput, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router';
+import { Alert, Anchor, Button, Center, Code, Paper, PasswordInput, Stack, Text, TextInput, ThemeIcon, Title } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { IconAlertCircle, IconPlus } from '@tabler/icons-react';
 import { useAuth } from '../auth/AuthProvider';
@@ -65,7 +65,10 @@ export default function ConnexionPage() {
                 key={form.key('motDePasse')}
                 {...form.getInputProps('motDePasse')}
               />
-              <Button type="submit" loading={envoi} fullWidth mt="xs">Se connecter</Button>
+              <Anchor component={Link} to="/mot-de-passe-oublie" size="sm" ta="right" mt={-8}>
+                Mot de passe oublié ?
+              </Anchor>
+              <Button type="submit" loading={envoi} fullWidth>Se connecter</Button>
             </Stack>
           </form>
 

@@ -3,12 +3,14 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const optionsCors = require('./config/cors');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
-const { proteger } = require('./middlewares/auth');
+const { proteger, exigerMotDePasseAJour } = require('./middlewares/auth');
 const { limiteurApi } = require('./middlewares/rateLimit');
 const authRoutes = require('./routes/authRoutes');
 const utilisateurRoutes = require('./routes/utilisateurRoutes');
 const affectationRoutes = require('./routes/affectationRoutes');
 const journalRoutes = require('./routes/journalRoutes');
+const zoneRoutes = require('./routes/zoneRoutes');
+const centreRoutes = require('./routes/centreRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -44,10 +46,14 @@ app.get('/health', (req, res) => {
 // Routes métier
 app.use('/api', limiteurApi);
 app.use('/api/auth', authRoutes);
-// Chaque route métier exige d'être connecté (proteger) puis un rôle précis (autoriser, dans les routes)
-app.use('/api/utilisateurs', proteger, utilisateurRoutes);
-app.use('/api/affectations', proteger, affectationRoutes);
-app.use('/api/journal', proteger, journalRoutes);
+// Chaque route métier exige d'être connecté avec un mot de passe définitif (connecte),
+// puis un rôle précis (autoriser, dans les fichiers de routes)
+const connecte = [proteger, exigerMotDePasseAJour];
+app.use('/api/utilisateurs', connecte, utilisateurRoutes);
+app.use('/api/affectations', connecte, affectationRoutes);
+app.use('/api/journal', connecte, journalRoutes);
+app.use('/api/zones', connecte, zoneRoutes);
+app.use('/api/centres', connecte, centreRoutes);
 
 // Route inexistante -> 404 normalisée
 app.use(notFound);

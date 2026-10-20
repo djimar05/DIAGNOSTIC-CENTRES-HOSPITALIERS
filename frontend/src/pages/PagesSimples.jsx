@@ -1,18 +1,5 @@
 import { Link, isRouteErrorResponse, useRouteError } from 'react-router';
-import { Alert, Button, Center, Stack, Text, Title } from '@mantine/core';
-import { IconTools } from '@tabler/icons-react';
-
-/** Écran prévu au plan de travail mais pas encore réalisé. */
-export function EnConstructionPage({ titre }) {
-  return (
-    <Stack maw={600}>
-      <Title order={2}>{titre}</Title>
-      <Alert icon={<IconTools />} title="Écran en construction">
-        Cet écran sera disponible dans une prochaine version.
-      </Alert>
-    </Stack>
-  );
-}
+import { Button, Center, Stack, Text, Title } from '@mantine/core';
 
 export function PageIntrouvable() {
   return (
