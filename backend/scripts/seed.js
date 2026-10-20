@@ -1,5 +1,6 @@
 /**
- * Données de démonstration : découpage sanitaire, quelques centres et un compte par profil.
+ * Données de démonstration : découpage sanitaire, quelques centres, un compte par profil
+ * et une grille publiée (donnees/grille-demo.json, 10 domaines aux poids du cahier des charges).
  * Idempotent : relancer le script met à jour les données sans créer de doublons.
  * Refusé en production.
  *
@@ -13,6 +14,8 @@ const Zone = require('../models/Zone');
 const Centre = require('../models/Centre');
 const Utilisateur = require('../models/Utilisateur');
 const Affectation = require('../models/Affectation');
+const Grille = require('../models/Grille');
+const GRILLE_DEMO = require('../donnees/grille-demo.json');
 
 const MOT_DE_PASSE_DEMO = 'Demo2026!';
 
@@ -98,7 +101,12 @@ const seed = async () => {
     if (!existe) await Affectation.create({ utilisateur: utilisateur._id, role, ...perimetre });
   }
 
-  return { zones: ZONES.length, centres: CENTRES.length, comptes: COMPTES_DEMO.length };
+  // Grille publiée (créée une seule fois : une grille publiée est figée)
+  if (!await Grille.exists({ code: GRILLE_DEMO.code })) {
+    await Grille.create({ ...GRILLE_DEMO, version: 1, statut: 'PUBLIEE', publieeLe: new Date() });
+  }
+
+  return { zones: ZONES.length, centres: CENTRES.length, comptes: COMPTES_DEMO.length, grilles: 1 };
 };
 
 module.exports = { seed, COMPTES_DEMO, MOT_DE_PASSE_DEMO };
@@ -109,7 +117,7 @@ if (require.main === module) {
   (async () => {
     await connectDB();
     const resume = await seed();
-    console.log(`Seed terminé : ${resume.zones} zones, ${resume.centres} centres, ${resume.comptes} comptes.`);
+    console.log(`Seed terminé : ${resume.zones} zones, ${resume.centres} centres, ${resume.comptes} comptes, ${resume.grilles} grille publiée.`);
     console.log(`\nComptes de démonstration (mot de passe : ${MOT_DE_PASSE_DEMO})`);
     for (const c of COMPTES_DEMO) console.log(`  ${c.telephone}  ${c.role.padEnd(20)} ${c.prenom} ${c.nom}`);
     await mongoose.disconnect();

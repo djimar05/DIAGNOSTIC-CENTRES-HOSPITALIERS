@@ -1,4 +1,6 @@
-import { IconBuildingHospital, IconHistory, IconHome, IconSitemap, IconUsers } from '@tabler/icons-react';
+import {
+  IconBuildingHospital, IconClipboardList, IconHistory, IconHome, IconSitemap, IconUsers,
+} from '@tabler/icons-react';
 
 /**
  * Entrées du menu latéral. `roles` absent = visible par tous.
@@ -8,6 +10,7 @@ export const NAVIGATION = [
   { libelle: 'Accueil', chemin: '/', icone: IconHome },
   { libelle: 'Centres', chemin: '/centres', icone: IconBuildingHospital },
   { libelle: 'Zones', chemin: '/zones', icone: IconSitemap, roles: ['ADMINISTRATEUR'] },
+  { libelle: 'Grilles', chemin: '/grilles', icone: IconClipboardList, roles: ['ADMINISTRATEUR'] },
   { libelle: 'Utilisateurs', chemin: '/utilisateurs', icone: IconUsers, roles: ['ADMINISTRATEUR', 'COORDONNATEUR'] },
   { libelle: "Journal d'activité", chemin: '/journal', icone: IconHistory, roles: ['ADMINISTRATEUR'] },
 ];

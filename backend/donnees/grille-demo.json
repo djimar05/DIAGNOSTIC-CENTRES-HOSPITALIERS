@@ -1,0 +1,109 @@
+{
+  "code": "GRILLE-DEMO",
+  "nom": "Grille de démonstration – centres et postes de santé",
+  "niveauxCibles": ["CENTRE_SANTE", "POSTE_SANTE"],
+  "classes": [
+    { "classe": "A", "min": 80, "max": 100 },
+    { "classe": "B", "min": 60, "max": 80 },
+    { "classe": "C", "min": 40, "max": 60 },
+    { "classe": "D", "min": 0, "max": 40 }
+  ],
+  "domaines": [
+    {
+      "code": "INF", "nom": "Infrastructures", "poids": 10, "plafondSiEliminatoire": 40, "ordre": 1,
+      "criteres": [
+        { "code": "INF-01", "libelle": "État de la toiture (fuites, tôles manquantes)", "typeReponse": "ECHELLE_0_3", "pointsMax": 3, "poids": 2, "aide": "0 = effondrée, 3 = en bon état", "preuveExigee": "PHOTO", "ordre": 1 },
+        { "code": "INF-02", "libelle": "Accès possible pour une personne à mobilité réduite", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "ordre": 2 },
+        { "code": "INF-03", "libelle": "Clôture complète et en bon état", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "sansObjetAutorise": true, "ordre": 3 }
+      ]
+    },
+    {
+      "code": "EAU", "nom": "Eau, électricité, assainissement", "poids": 10, "plafondSiEliminatoire": 40, "ordre": 2,
+      "criteres": [
+        { "code": "EAU-01", "libelle": "Source d'eau potable disponible toute l'année sur le site", "aide": "Forage, adduction ou citerne traitée", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "eliminatoire": true, "preuveExigee": "PHOTO", "ordre": 1 },
+        { "code": "EAU-02", "libelle": "Source principale d'électricité", "typeReponse": "CHOIX_UNIQUE", "pointsMax": 3, "poids": 2, "ordre": 2,
+          "options": [
+            { "code": "RESEAU", "libelle": "Réseau électrique", "points": 3 },
+            { "code": "SOLAIRE", "libelle": "Panneaux solaires", "points": 2 },
+            { "code": "GROUPE", "libelle": "Groupe électrogène", "points": 1 },
+            { "code": "AUCUNE", "libelle": "Aucune source", "points": 0 }
+          ] },
+        { "code": "EAU-03", "libelle": "Latrines fonctionnelles et propres", "typeReponse": "ECHELLE_0_3", "pointsMax": 3, "poids": 1, "ordre": 3 }
+      ]
+    },
+    {
+      "code": "EQU", "nom": "Équipements médicaux", "poids": 12, "plafondSiEliminatoire": 40, "ordre": 3,
+      "criteres": [
+        { "code": "EQU-01", "libelle": "Matériel essentiel disponible et fonctionnel", "aide": "Tensiomètre, balance, thermomètre, stéthoscope…", "typeReponse": "ECHELLE_0_3", "pointsMax": 3, "poids": 2, "ordre": 1 },
+        { "code": "EQU-02", "libelle": "Plan ou contrat de maintenance des équipements", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "preuveExigee": "DOCUMENT", "ordre": 2 }
+      ]
+    },
+    {
+      "code": "RH", "nom": "Ressources humaines", "poids": 12, "plafondSiEliminatoire": 40, "ordre": 4,
+      "criteres": [
+        { "code": "RH-04", "libelle": "Pourcentage de l'effectif requis présent le jour de la visite", "typeReponse": "NOMBRE", "pointsMax": 3, "poids": 2, "ordre": 1,
+          "bareme": { "seuils": [ { "min": 0, "max": 49, "points": 0 }, { "min": 50, "max": 74, "points": 1 }, { "min": 75, "max": 89, "points": 2 }, { "min": 90, "max": 100, "points": 3 } ] } },
+        { "code": "RH-05", "libelle": "Au moins une formation continue suivie dans l'année", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "ordre": 2 }
+      ]
+    },
+    {
+      "code": "MED", "nom": "Médicaments et intrants", "poids": 12, "plafondSiEliminatoire": 40, "ordre": 5,
+      "criteres": [
+        { "code": "MED-01", "libelle": "Pourcentage des médicaments traceurs disponibles", "typeReponse": "NOMBRE", "pointsMax": 3, "poids": 2, "ordre": 1,
+          "bareme": { "seuils": [ { "min": 0, "max": 59, "points": 0 }, { "min": 60, "max": 79, "points": 1 }, { "min": 80, "max": 94, "points": 2 }, { "min": 95, "max": 100, "points": 3 } ] } },
+        { "code": "MED-02", "libelle": "Chaîne du froid fonctionnelle (réfrigérateur entre +2 et +8 °C)", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "eliminatoire": true, "sansObjetAutorise": true, "ordre": 2 }
+      ]
+    },
+    {
+      "code": "SRV", "nom": "Offre de services", "poids": 12, "plafondSiEliminatoire": 40, "ordre": 6,
+      "criteres": [
+        { "code": "SRV-01", "libelle": "Services disponibles", "typeReponse": "CHOIX_MULTIPLE", "pointsMax": 5, "poids": 2, "ordre": 1,
+          "options": [
+            { "code": "CONSULTATION", "libelle": "Consultations", "points": 1 },
+            { "code": "MATERNITE", "libelle": "Maternité", "points": 1 },
+            { "code": "VACCINATION", "libelle": "Vaccination", "points": 1 },
+            { "code": "LABORATOIRE", "libelle": "Laboratoire", "points": 1 },
+            { "code": "URGENCES", "libelle": "Urgences", "points": 1 }
+          ] },
+        { "code": "SRV-03", "libelle": "Maternité fonctionnelle", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "ordre": 2 },
+        { "code": "SRV-04", "libelle": "Salle d'accouchement éclairée", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "sansObjetAutorise": true, "condition": { "critere": "SRV-03", "valeur": "Oui" }, "ordre": 3 }
+      ]
+    },
+    {
+      "code": "HYG", "nom": "Hygiène et prévention des infections", "poids": 10, "plafondSiEliminatoire": 40, "ordre": 7,
+      "criteres": [
+        { "code": "HYG-01", "libelle": "Dispositifs de lavage des mains aux points de soins", "typeReponse": "ECHELLE_0_3", "pointsMax": 3, "poids": 1, "ordre": 1 },
+        { "code": "HYG-02", "libelle": "Tri des déchets biomédicaux (boîtes de sécurité, poubelles)", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "preuveExigee": "PHOTO", "ordre": 2 }
+      ]
+    },
+    {
+      "code": "GES", "nom": "Gestion et gouvernance", "poids": 8, "plafondSiEliminatoire": 40, "ordre": 8,
+      "criteres": [
+        { "code": "GES-01", "libelle": "Organigramme affiché", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "ordre": 1 },
+        { "code": "GES-02", "libelle": "Nombre de réunions du comité de gestion dans l'année", "typeReponse": "NOMBRE", "pointsMax": 2, "poids": 1, "ordre": 2,
+          "bareme": { "seuils": [ { "min": 0, "max": 0, "points": 0 }, { "min": 1, "max": 3, "points": 1 }, { "min": 4, "points": 2 } ] } }
+      ]
+    },
+    {
+      "code": "SIS", "nom": "Système d'information sanitaire", "poids": 7, "plafondSiEliminatoire": 40, "ordre": 9,
+      "criteres": [
+        { "code": "SIS-01", "libelle": "Registres de consultation tenus à jour", "typeReponse": "ECHELLE_0_3", "pointsMax": 3, "poids": 1, "ordre": 1 },
+        { "code": "SIS-02", "libelle": "Complétude des rapports mensuels sur 12 mois (%)", "typeReponse": "NOMBRE", "pointsMax": 3, "poids": 1, "ordre": 2,
+          "bareme": { "seuils": [ { "min": 0, "points": 0 }, { "min": 50, "points": 1 }, { "min": 80, "points": 2 }, { "min": 95, "points": 3 } ] } }
+      ]
+    },
+    {
+      "code": "QUA", "nom": "Qualité et satisfaction des usagers", "poids": 7, "plafondSiEliminatoire": 40, "ordre": 10,
+      "criteres": [
+        { "code": "QUA-01", "libelle": "Temps d'attente moyen avant consultation", "typeReponse": "CHOIX_UNIQUE", "pointsMax": 2, "poids": 1, "ordre": 1,
+          "options": [
+            { "code": "MOINS_30", "libelle": "Moins de 30 minutes", "points": 2 },
+            { "code": "30_60", "libelle": "De 30 à 60 minutes", "points": 1 },
+            { "code": "PLUS_60", "libelle": "Plus d'une heure", "points": 0 }
+          ] },
+        { "code": "QUA-02", "libelle": "Mécanisme de plainte accessible aux usagers", "typeReponse": "OUI_NON", "pointsMax": 1, "poids": 1, "ordre": 2 },
+        { "code": "QUA-03", "libelle": "Principales difficultés signalées par l'équipe", "typeReponse": "TEXTE", "obligatoire": false, "ordre": 3 }
+      ]
+    }
+  ]
+}
