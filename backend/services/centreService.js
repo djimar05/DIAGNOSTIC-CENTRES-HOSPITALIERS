@@ -1,6 +1,7 @@
 const Centre = require('../models/Centre');
 const Zone = require('../models/Zone');
 const Evaluation = require('../models/Evaluation');
+const Mission = require('../models/Mission');
 const ActionCorrective = require('../models/ActionCorrective');
 const ApiError = require('../middlewares/ApiError');
 const droitsService = require('./droitsService');
@@ -99,6 +100,7 @@ const modifierCentre = async (id, donnees = {}) => {
   await centre.save();
   if (changementZone) {
     await Evaluation.updateMany({ centre: centre._id }, { zoneAncetres: centre.zoneAncetres });
+    await Mission.updateMany({ centre: centre._id }, { zoneAncetres: centre.zoneAncetres });
   }
   return { centre, champsModifies };
 };

@@ -27,6 +27,7 @@ function Entite({ entite }) {
   if (!entite?.modele) return <Text size="sm" c="dimmed">—</Text>;
   const liens = {
     Utilisateur: `/utilisateurs/${entite.id}`, Centre: `/centres/${entite.id}`, Zone: '/zones', Grille: `/grilles/${entite.id}`,
+    Campagne: `/campagnes/${entite.id}`,
   };
   if (liens[entite.modele]) {
     return <Anchor component={Link} to={liens[entite.modele]} size="sm">{entite.modele}</Anchor>;

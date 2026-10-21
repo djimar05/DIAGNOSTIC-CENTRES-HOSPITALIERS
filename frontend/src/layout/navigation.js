@@ -1,6 +1,7 @@
 import {
-  IconBuildingHospital, IconClipboardList, IconHistory, IconHome, IconSitemap, IconUsers,
+  IconBuildingHospital, IconCalendarEvent, IconClipboardList, IconHistory, IconHome, IconSitemap, IconUsers,
 } from '@tabler/icons-react';
+import { ROLES_LECTURE_CAMPAGNE } from '../constantes/planification';
 
 /**
  * Entrées du menu latéral. `roles` absent = visible par tous.
@@ -8,6 +9,7 @@ import {
  */
 export const NAVIGATION = [
   { libelle: 'Accueil', chemin: '/', icone: IconHome },
+  { libelle: 'Campagnes', chemin: '/campagnes', icone: IconCalendarEvent, roles: ROLES_LECTURE_CAMPAGNE },
   { libelle: 'Centres', chemin: '/centres', icone: IconBuildingHospital },
   { libelle: 'Zones', chemin: '/zones', icone: IconSitemap, roles: ['ADMINISTRATEUR'] },
   { libelle: 'Grilles', chemin: '/grilles', icone: IconClipboardList, roles: ['ADMINISTRATEUR'] },
