@@ -5,15 +5,8 @@ const optionsCors = require('./config/cors');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const { proteger, exigerMotDePasseAJour } = require('./middlewares/auth');
 const { limiteurApi } = require('./middlewares/rateLimit');
-const authRoutes = require('./routes/authRoutes');
-const utilisateurRoutes = require('./routes/utilisateurRoutes');
-const affectationRoutes = require('./routes/affectationRoutes');
-const journalRoutes = require('./routes/journalRoutes');
-const zoneRoutes = require('./routes/zoneRoutes');
-const centreRoutes = require('./routes/centreRoutes');
-const grilleRoutes = require('./routes/grilleRoutes');
-const campagneRoutes = require('./routes/campagneRoutes');
-const missionRoutes = require('./routes/missionRoutes');
+const routes = require('./routes');
+const { docsActives, routeurDocumentation } = require('./docs/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -48,18 +41,16 @@ app.get('/health', (req, res) => {
 
 // Routes métier
 app.use('/api', limiteurApi);
-app.use('/api/auth', authRoutes);
+
+// Documentation interactive (Swagger UI) sur /api/docs – désactivée par défaut en production
+if (docsActives()) app.use('/api/docs', routeurDocumentation());
+
 // Chaque route métier exige d'être connecté avec un mot de passe définitif (connecte),
-// puis un rôle précis (autoriser, dans les fichiers de routes)
+// puis un rôle précis (autoriser, dans les fichiers de routes). Table de montage : routes/index.js
 const connecte = [proteger, exigerMotDePasseAJour];
-app.use('/api/utilisateurs', connecte, utilisateurRoutes);
-app.use('/api/affectations', connecte, affectationRoutes);
-app.use('/api/journal', connecte, journalRoutes);
-app.use('/api/zones', connecte, zoneRoutes);
-app.use('/api/centres', connecte, centreRoutes);
-app.use('/api/grilles', connecte, grilleRoutes);
-app.use('/api/campagnes', connecte, campagneRoutes);
-app.use('/api/missions', connecte, missionRoutes);
+for (const { prefixe, routeur, publique } of routes) {
+  app.use(`/api${prefixe}`, ...(publique ? [] : connecte), routeur);
+}
 
 // Route inexistante -> 404 normalisée
 app.use(notFound);

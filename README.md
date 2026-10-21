@@ -51,6 +51,17 @@ Le seed publie aussi une grille de démonstration ([backend/donnees/grille-demo.
 Le seed est refusé quand `NODE_ENV=production`. Pour créer le premier administrateur d'une base réelle :
 `npm run creer-utilisateur -- <nom> <telephone> <motDePasse> [email]`.
 
+## Documentation de l'API (Swagger)
+
+Backend lancé : **http://localhost:3000/api/docs** (ou http://localhost:5173/api/docs via le front).
+
+1. `POST /auth/connexion` → **Try it out** avec un compte de démonstration, copier `accessToken`.
+2. Bouton **Authorize** → coller le jeton : toutes les routes sont ensuite testables avec ces droits.
+
+La spécification brute est sur `/api/docs/openapi.json` (import dans Postman / Insomnia, génération de client).
+Elle est écrite dans [backend/docs/openapi/](backend/docs/openapi/), un fichier par module ; un test échoue si
+une route n'y est pas décrite. Désactivée par défaut en production (`API_DOCS=true` pour l'activer).
+
 ## Tests
 
 ```bash
