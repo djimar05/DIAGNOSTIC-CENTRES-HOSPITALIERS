@@ -20,6 +20,9 @@ const FicheCentrePage = lazy(() => import('./pages/centres/FicheCentrePage'));
 const ImportCentresPage = lazy(() => import('./pages/centres/ImportCentresPage'));
 const GrillesPage = lazy(() => import('./pages/grilles/GrillesPage'));
 const EditeurGrillePage = lazy(() => import('./pages/grilles/EditeurGrillePage'));
+const CampagnesPage = lazy(() => import('./pages/campagnes/CampagnesPage'));
+const AssistantCampagnePage = lazy(() => import('./pages/campagnes/AssistantCampagnePage'));
+const CampagnePage = lazy(() => import('./pages/campagnes/CampagnePage'));
 
 export const router = createBrowserRouter([
   { path: '/connexion', element: <ConnexionPage />, errorElement: <PageErreur /> },
@@ -34,6 +37,17 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <AccueilPage /> },
           { path: 'profil', element: <ProfilPage /> },
+          {
+            element: <RouteProtegee roles={rolesDe('/campagnes')} />,
+            children: [
+              { path: 'campagnes', element: <CampagnesPage /> },
+              { path: 'campagnes/:id', element: <CampagnePage /> },
+            ],
+          },
+          {
+            element: <RouteProtegee roles={['ADMINISTRATEUR', 'COORDONNATEUR']} />,
+            children: [{ path: 'campagnes/nouvelle', element: <AssistantCampagnePage /> }],
+          },
           { path: 'centres', element: <CentresPage /> },
           { path: 'centres/:id', element: <FicheCentrePage /> },
           {
