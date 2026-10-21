@@ -49,6 +49,14 @@ export const LIBELLES_ACTIONS = {
   GRILLE_PUBLIEE: 'Grille publiée',
   GRILLE_ARCHIVEE: 'Grille archivée',
   GRILLE_SUPPRIMEE: 'Brouillon de grille supprimé',
+  CAMPAGNE_CREEE: 'Campagne créée',
+  CAMPAGNE_MODIFIEE: 'Campagne modifiée',
+  CAMPAGNE_DEMARREE: 'Campagne démarrée',
+  CAMPAGNE_CLOTUREE: 'Campagne clôturée',
+  MISSIONS_CREEES: 'Centres ajoutés à une campagne',
+  EQUIPE_AFFECTEE: 'Équipe affectée',
+  MISSION_MODIFIEE: 'Mission modifiée',
+  MISSION_SUPPRIMEE: 'Centre retiré d\'une campagne',
 };
 
 export const libelleAction = (action) => LIBELLES_ACTIONS[action] || action;

@@ -63,4 +63,16 @@ const zonesDuPerimetre = async (affectations) => {
   return Zone.find({ $or: [{ _id: { $in: racines } }, { ancetres: { $in: racines } }] }).distinct('_id');
 };
 
-module.exports = { conditionsActives, affectationsActives, filtrePerimetre, zoneDansPerimetre, zonesDuPerimetre, memeId };
+/**
+ * Vrai si les affectations couvrent un objet rattaché à un centre (centre, mission, évaluation…).
+ * `objet` porte `zoneAncetres` (zones du centre, zone du centre incluse) et `centre` (ou `_id` pour un centre).
+ */
+const couvre = (affectations, { zoneAncetres = [], centre }) => affectations.some((a) => {
+  if (estNationale(a)) return true;
+  if (a.centre) return memeId(a.centre, centre);
+  return zoneAncetres.some((z) => memeId(z, a.zone));
+});
+
+module.exports = {
+  conditionsActives, affectationsActives, filtrePerimetre, zoneDansPerimetre, zonesDuPerimetre, couvre, memeId, estNationale,
+};

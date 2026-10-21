@@ -23,6 +23,7 @@ const opts = { timestamps: true }; // ajoute createdAt et updatedAt à chaque do
 const MissionSchema = new Schema({
   campagne: { type: ObjectId, ref: 'Campagne', required: true, index: true },
   centre: { type: ObjectId, ref: 'Centre', required: true },
+  zoneAncetres: [{ type: ObjectId, ref: 'Zone' }], // copie de centre.zoneAncetres, pour filtrer par périmètre
   datePrevue: Date,
   evaluateurs: [{ type: ObjectId, ref: 'Utilisateur' }],
   superviseur: { type: ObjectId, ref: 'Utilisateur' },
@@ -30,5 +31,14 @@ const MissionSchema = new Schema({
 }, opts);
 MissionSchema.index({ campagne: 1, centre: 1 }, { unique: true });
 MissionSchema.index({ evaluateurs: 1, statut: 1 }); // « Mes missions »
+MissionSchema.index({ superviseur: 1, statut: 1 });
+MissionSchema.index({ zoneAncetres: 1, datePrevue: 1 }); // calendrier du coordonnateur
+
+// Un évaluateur ne valide pas ses propres évaluations : le superviseur ne fait pas partie de l'équipe d'évaluation
+MissionSchema.pre('validate', function () {
+  if (this.superviseur && this.evaluateurs.some((e) => e.equals(this.superviseur))) {
+    this.invalidate('superviseur', 'Le superviseur ne peut pas être aussi évaluateur de la mission');
+  }
+});
 
 module.exports = mongoose.model('Mission', MissionSchema);

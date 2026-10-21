@@ -1,6 +1,7 @@
 const Zone = require('../models/Zone');
 const Centre = require('../models/Centre');
 const Evaluation = require('../models/Evaluation');
+const Mission = require('../models/Mission');
 const ApiError = require('../middlewares/ApiError');
 const droitsService = require('./droitsService');
 const { NIVEAUX_ZONE } = require('../models/enumUtils');
@@ -116,9 +117,11 @@ const recalculerSousArbre = async (zone) => {
   await Centre.bulkWrite(centres.map((c) => ({
     updateOne: { filter: { _id: c._id }, update: { zoneAncetres: zoneAncetresDe(c) } },
   })));
-  await Evaluation.bulkWrite(centres.map((c) => ({
+  const parCentre = centres.map((c) => ({
     updateMany: { filter: { centre: c._id }, update: { zoneAncetres: zoneAncetresDe(c) } },
-  })));
+  }));
+  await Evaluation.bulkWrite(parCentre);
+  await Mission.bulkWrite(parCentre);
 };
 
 /** Modifie code, nom, état ou parent (déplacement dans l'arbre). Le niveau n'est pas modifiable. */
