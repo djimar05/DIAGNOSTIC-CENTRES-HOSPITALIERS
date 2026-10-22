@@ -51,6 +51,21 @@ Le seed publie aussi une grille de démonstration ([backend/donnees/grille-demo.
 Le seed est refusé quand `NODE_ENV=production`. Pour créer le premier administrateur d'une base réelle :
 `npm run creer-utilisateur -- <nom> <telephone> <motDePasse> [email]`.
 
+## Application mobile (évaluateurs)
+
+Expo SDK 57, Expo Router (écrans dans [mobile/src/app/](mobile/src/app/)). Sur un téléphone Android avec **Expo Go 57** :
+
+```bash
+cd mobile
+npm install
+npx expo start --clear      # puis scanner le QR code avec Expo Go
+```
+
+- Le téléphone doit être sur le **même Wi-Fi** que le PC. L'application appelle automatiquement le backend
+  sur l'IP du PC (`http://<IP du PC>:3000/api`) ; sinon définir `EXPO_PUBLIC_API_URL` (voir [mobile/.env.example](mobile/.env.example)).
+- Si le téléphone affiche « Serveur injoignable », autoriser le port 3000 dans le pare-feu Windows.
+- Compte de démonstration : `+235660000103` / `Demo2026!` (évaluateur ; ses missions apparaissent quand une campagne est démarrée).
+
 ## Documentation de l'API (Swagger)
 
 Backend lancé : **http://localhost:3000/api/docs** (ou http://localhost:5173/api/docs via le front).

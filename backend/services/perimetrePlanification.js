@@ -1,3 +1,4 @@
+const Campagne = require('../models/Campagne');
 const Mission = require('../models/Mission');
 const ApiError = require('../middlewares/ApiError');
 const droitsService = require('./droitsService');
@@ -7,7 +8,8 @@ const droitsService = require('./droitsService');
  *   - Administrateur, responsable national : tout
  *   - Coordonnateur : les campagnes de sa zone (ou en dessous) et les missions des centres de son périmètre,
  *     y compris celles d'une campagne régionale qui touchent son district
- *   - Évaluateur, superviseur : les missions où ils sont affectés, et les campagnes correspondantes
+ *   - Évaluateur, superviseur : les missions où ils sont affectés, dans les campagnes démarrées
+ *     (une campagne en préparation n'est pas encore visible sur le terrain)
  */
 const ROLES_NATIONAUX = ['ADMINISTRATEUR', 'RESPONSABLE_NATIONAL'];
 const ROLES_GESTION = ['ADMINISTRATEUR', 'COORDONNATEUR'];
@@ -18,16 +20,20 @@ const national = (affectations) => affectations.some(
 );
 const coordination = (affectations) => affectations.filter((a) => a.role === 'COORDONNATEUR');
 const terrain = (affectations) => affectations.some((a) => ROLES_TERRAIN.includes(a.role));
-const sesMissions = (utilisateurId) => ({ $or: [{ evaluateurs: utilisateurId }, { superviseur: utilisateurId }] });
+/** Missions de l'utilisateur (évaluateur ou superviseur) dans les campagnes démarrées. */
+const sesMissions = async (utilisateurId) => ({
+  $or: [{ evaluateurs: utilisateurId }, { superviseur: utilisateurId }],
+  campagne: { $in: await Campagne.distinct('_id', { statut: { $ne: 'PREPARATION' } }) },
+});
 
 /** Filtre des missions visibles (zoneAncetres / centre de la mission). */
-const filtreMissions = (req) => {
+const filtreMissions = async (req) => {
   const affectations = req.affectationsAutorisees;
   if (national(affectations)) return {};
   const conditions = [];
   const coord = coordination(affectations);
   if (coord.length) conditions.push(droitsService.filtrePerimetre(coord));
-  if (terrain(affectations)) conditions.push(sesMissions(req.utilisateur._id));
+  if (terrain(affectations)) conditions.push(await sesMissions(req.utilisateur._id));
   return conditions.length ? { $or: conditions } : { _id: null };
 };
 
@@ -38,7 +44,7 @@ const filtreEvaluations = async (req) => {
   const conditions = [];
   const coord = coordination(affectations);
   if (coord.length) conditions.push(droitsService.filtrePerimetre(coord));
-  if (terrain(affectations)) conditions.push({ mission: { $in: await Mission.distinct('_id', sesMissions(req.utilisateur._id)) } });
+  if (terrain(affectations)) conditions.push({ mission: { $in: await Mission.distinct('_id', await sesMissions(req.utilisateur._id)) } });
   return conditions.length ? { $or: conditions } : { _id: null };
 };
 
@@ -54,7 +60,7 @@ const filtreCampagnes = async (req) => {
     conditions.push({ _id: { $in: await Mission.distinct('campagne', droitsService.filtrePerimetre(coord)) } });
   }
   if (terrain(affectations)) {
-    conditions.push({ _id: { $in: await Mission.distinct('campagne', sesMissions(req.utilisateur._id)) } });
+    conditions.push({ _id: { $in: await Mission.distinct('campagne', await sesMissions(req.utilisateur._id)) } });
   }
   return conditions.length ? { $or: conditions } : { _id: null };
 };

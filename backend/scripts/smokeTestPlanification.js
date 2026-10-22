@@ -109,6 +109,11 @@ const verifier = (nom, condition, extra = '') => {
   r = await data(rep);
   verifier('équipe hors zone : mission créée sans équipe, avec avertissement', r.creees === 1 && /n'est pas évaluateur/.test(r.avertissements.join()), JSON.stringify(r));
 
+  r = await data(await evalA('GET', '/missions'));
+  verifier('campagne en préparation : missions pas encore visibles par l\'évaluateur', r.length === 0, `n=${r.length}`);
+  r = await data(await evalA('GET', '/campagnes'));
+  verifier('campagne en préparation : pas encore visible par l\'évaluateur', r.length === 0, `n=${r.length}`);
+
   // 3. Démarrage et équipes
   rep = await coord('POST', `/campagnes/${camp._id}/demarrer`);
   verifier('démarrer avec une mission sans évaluateur -> 400', rep.status === 400 && /sans évaluateur/.test((await rep.json()).error.message));

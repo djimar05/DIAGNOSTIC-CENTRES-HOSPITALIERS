@@ -38,7 +38,7 @@ const avecEvaluation = async (missions) => {
 const listerMissions = async (req, {
   campagne, statut, centre, evaluateur, du, au, sansEquipe, sansDate, enRetard, limite = 500,
 } = {}) => {
-  const conditions = [perimetre.filtreMissions(req)];
+  const conditions = [await perimetre.filtreMissions(req)];
   if (campagne) conditions.push({ campagne });
   if (statut) conditions.push({ statut });
   if (centre) conditions.push({ centre });
@@ -60,7 +60,7 @@ const listerMissions = async (req, {
 
 /** Mission visible, sinon 404. */
 const obtenirMission = async (req, id) => {
-  const mission = await Mission.findOne({ $and: [{ _id: id }, perimetre.filtreMissions(req)] });
+  const mission = await Mission.findOne({ $and: [{ _id: id }, await perimetre.filtreMissions(req)] });
   if (!mission) throw ApiError.notFound('Mission non trouvée');
   return mission;
 };
@@ -140,7 +140,7 @@ const modifierMission = async (req, id, donnees = {}) => {
 const affecterEquipe = async (req, campagneId, { missions = [], evaluateurs, superviseur, datePrevue } = {}) => {
   if (!missions.length) throw ApiError.badRequest('Sélectionnez au moins une mission');
   const verifierEquipe = await equipeService.preparerVerification({ evaluateurs: evaluateurs || [], superviseur });
-  const liste = await Mission.find({ $and: [{ _id: { $in: missions }, campagne: campagneId }, perimetre.filtreMissions(req)] })
+  const liste = await Mission.find({ $and: [{ _id: { $in: missions }, campagne: campagneId }, await perimetre.filtreMissions(req)] })
     .populate('centre', 'code nom');
 
   const resultat = { modifiees: 0, refus: [] };

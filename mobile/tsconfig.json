@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    // Déjà défini par expo/tsconfig.base ; répété ici pour que l'éditeur le voie même s'il résout mal l'héritage
+    "jsx": "react-jsx",
+    // Imports depuis src : import { api } from '@/api/client'
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}

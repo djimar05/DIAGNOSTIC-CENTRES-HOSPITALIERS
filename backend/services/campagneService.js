@@ -196,7 +196,7 @@ const ajouterMissions = async (req, id, { centres = [], evaluateurs = [], superv
  */
 const avancementCampagne = async (req, id) => {
   const campagne = await obtenirCampagne(req, id);
-  const missions = await Mission.find({ $and: [{ campagne: campagne._id }, perimetre.filtreMissions(req)] })
+  const missions = await Mission.find({ $and: [{ campagne: campagne._id }, await perimetre.filtreMissions(req)] })
     .select('statut datePrevue evaluateurs centre').populate({ path: 'centre', select: 'zone', populate: { path: 'zone', select: 'nom code' } }).lean();
   const statuts = new Map((await Evaluation.find({ mission: { $in: missions.map((m) => m._id) } }).select('mission statut').lean())
     .map((e) => [String(e.mission), e.statut]));
