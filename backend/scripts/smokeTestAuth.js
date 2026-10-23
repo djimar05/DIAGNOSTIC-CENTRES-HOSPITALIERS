@@ -26,7 +26,7 @@ const post = (chemin, body, token) => fetch(`${BASE}${chemin}`, {
 });
 
 (async () => {
-  const mongod = await MongoMemoryServer.create();
+  const mongod = await MongoMemoryServer.create({ instance: { launchTimeout: 60000 } });
   process.env.MONGODB_URI = mongod.getUri('test-smoke-auth');
   process.env.PORT = PORT;
   process.env.NODE_ENV = 'test';

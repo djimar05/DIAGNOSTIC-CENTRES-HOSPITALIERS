@@ -1,7 +1,10 @@
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
+import * as Location from 'expo-location';
+import { useDemarrer, useMissionMobile } from '@/api/collecte';
 import { messageErreur } from '@/api/client';
-import { useMission } from '@/api/missions';
+import type { Gps } from '@/api/types';
 import { Alerte, Bouton, EcranCentre, Pastille } from '@/composants/ui';
 import { couleurs, espace, STATUTS_EVALUATION } from '@/theme';
 import { formatDateLongue, nomComplet } from '@/utils/format';
@@ -15,35 +18,84 @@ function Ligne({ libelle, valeur }: { libelle: string; valeur?: string | null })
   );
 }
 
-/** M3 – Fiche d'une mission (lecture seule ; la saisie arrivera avec la collecte). */
+/** Position actuelle, ou null si refusée / indisponible (la visite peut démarrer quand même). */
+const positionActuelle = async (): Promise<Gps | null> => {
+  const { status } = await Location.requestForegroundPermissionsAsync();
+  if (status !== 'granted') return null;
+  try {
+    const { coords } = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+    return { type: 'Point', coordinates: [coords.longitude, coords.latitude], precisionMetres: coords.accuracy ?? undefined };
+  } catch {
+    return null;
+  }
+};
+
+/** M3 – Fiche de la mission et du centre ; démarrage de la visite avec relevé GPS. */
 export default function FicheMission() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data: mission, isPending, error } = useMission(id);
+  const { mission, isPending, error } = useMissionMobile(id);
+  const demarrer = useDemarrer();
+  const [releveGps, setReleveGps] = useState(false);
+  const [erreur, setErreur] = useState<string | null>(null);
 
   if (isPending) return <EcranCentre><ActivityIndicator size="large" color={couleurs.primaire} /></EcranCentre>;
-  if (error || !mission) return <EcranCentre><Alerte>{messageErreur(error)}</Alerte></EcranCentre>;
+  if (error || !mission) return <EcranCentre><Alerte>{error ? messageErreur(error) : 'Mission introuvable (actualisez la liste)'}</Alerte></EcranCentre>;
 
-  const statut = STATUTS_EVALUATION[mission.evaluation?.statut || 'PLANIFIEE'];
+  const evaluation = mission.evaluation;
+  const statut = evaluation?.statut || 'PLANIFIEE';
+  const versSaisie = () => router.push({ pathname: '/evaluation/[id]', params: { id: evaluation!._id } });
+
+  const lancer = async () => {
+    if (!evaluation) return;
+    setErreur(null);
+    setReleveGps(true);
+    const gps = await positionActuelle();
+    setReleveGps(false);
+    const confirmer = () => demarrer.mutate({ id: evaluation._id, gps: gps || undefined }, {
+      onSuccess: versSaisie,
+      onError: (e) => setErreur(messageErreur(e)),
+    });
+    if (gps) confirmer();
+    else {
+      Alert.alert('Position GPS indisponible', 'La position prouve que la visite a eu lieu sur place. Démarrer quand même sans position ?', [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Démarrer sans GPS', onPress: confirmer },
+      ]);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.page}>
       <Stack.Screen options={{ title: mission.centre.code || 'Mission' }} />
       <View style={styles.carte}>
         <Text style={styles.titre}>{mission.centre.nom}</Text>
-        <Pastille texte={statut.libelle} couleur={statut.couleur} />
+        <Pastille texte={STATUTS_EVALUATION[statut].libelle} couleur={STATUTS_EVALUATION[statut].couleur} />
         <Ligne libelle="Zone" valeur={mission.centre.zone?.nom} />
+        <Ligne libelle="Localité" valeur={mission.centre.localite} />
         <Ligne libelle="Visite prévue" valeur={formatDateLongue(mission.datePrevue)} />
         <Ligne libelle="Campagne" valeur={mission.campagne.nom} />
+        <Ligne libelle="Responsable du centre" valeur={[mission.centre.responsable?.nom, mission.centre.responsable?.telephone].filter(Boolean).join(' · ')} />
       </View>
 
       <View style={styles.carte}>
         <Text style={styles.sousTitre}>Équipe</Text>
         <Ligne libelle="Évaluateurs" valeur={mission.evaluateurs.map(nomComplet).join(', ')} />
-        <Ligne libelle="Superviseur" valeur={nomComplet(mission.superviseur)} />
-        {mission.superviseur?.telephone && <Ligne libelle="Tél. superviseur" valeur={mission.superviseur.telephone} />}
+        <Ligne libelle="Superviseur" valeur={[nomComplet(mission.superviseur), mission.superviseur?.telephone].filter(Boolean).join(' · ')} />
       </View>
 
-      <Bouton titre="Commencer l'évaluation" onPress={() => {}} desactive />
-      <Text style={styles.note}>La saisie de la grille sur le terrain arrivera dans la prochaine version.</Text>
+      {statut === 'A_CORRIGER' && evaluation?.motifCorrection && (
+        <Alerte type="alerte">Renvoyée par le superviseur : {evaluation.motifCorrection}</Alerte>
+      )}
+      {erreur && <Alerte>{erreur}</Alerte>}
+
+      {statut === 'PLANIFIEE' && (
+        <>
+          <Bouton titre={releveGps ? 'Relevé de la position…' : 'Démarrer la visite'} onPress={lancer} chargement={releveGps || demarrer.isPending} />
+          <Text style={styles.note}>À faire sur place : la position GPS et l'heure de début sont enregistrées.</Text>
+        </>
+      )}
+      {['EN_COURS', 'A_CORRIGER'].includes(statut) && <Bouton titre="Continuer la saisie" onPress={versSaisie} />}
+      {['SOUMISE', 'VALIDEE', 'PUBLIEE'].includes(statut) && <Bouton titre="Voir l'évaluation envoyée" variante="secondaire" onPress={versSaisie} />}
     </ScrollView>
   );
 }

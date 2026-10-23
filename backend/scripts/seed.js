@@ -1,6 +1,7 @@
 /**
- * Données de démonstration : découpage sanitaire, quelques centres, un compte par profil
- * et une grille publiée (donnees/grille-demo.json, 10 domaines aux poids du cahier des charges).
+ * Données de démonstration : découpage sanitaire, quelques centres, un compte par profil,
+ * une grille publiée (donnees/grille-demo.json, 10 domaines aux poids du cahier des charges)
+ * et, avec npm run seed, une campagne déjà démarrée : Ali (évaluateur) a des missions sur son téléphone.
  * Idempotent : relancer le script met à jour les données sans créer de doublons.
  * Refusé en production.
  *
@@ -15,7 +16,20 @@ const Centre = require('../models/Centre');
 const Utilisateur = require('../models/Utilisateur');
 const Affectation = require('../models/Affectation');
 const Grille = require('../models/Grille');
+const Campagne = require('../models/Campagne');
+const Mission = require('../models/Mission');
+const Evaluation = require('../models/Evaluation');
 const GRILLE_DEMO = require('../donnees/grille-demo.json');
+
+// Campagne de démonstration (démarrée) : centres du District A visés par la grille
+const CAMPAGNE_DEMO = {
+  nom: 'Démonstration – District A',
+  zone: 'DS-01-01',
+  coordonnateur: '+235660000102',
+  evaluateur: '+235660000103',
+  superviseur: '+235660000104',
+  missions: [{ centre: 'CS-0142', dansJours: 0 }, { centre: 'CS-0143', dansJours: 1 }],
+};
 
 const MOT_DE_PASSE_DEMO = 'Demo2026!';
 
@@ -53,8 +67,11 @@ const COMPTES_DEMO = [
   { telephone: '+235660000106', nom: 'Partenaire', prenom: 'Bailleur', fonction: 'Chargé de programme', role: 'PARTENAIRE' },
 ];
 
-/** Crée ou met à jour les données de démonstration. Renvoie un résumé des volumes. */
-const seed = async () => {
+/**
+ * Crée ou met à jour les données de démonstration. Renvoie un résumé des volumes.
+ * avecCampagne : ajoute la campagne démarrée (npm run seed) ; les tests la laissent de côté pour créer les leurs.
+ */
+const seed = async ({ avecCampagne = false } = {}) => {
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Le seed de démonstration est interdit en production');
   }
@@ -106,7 +123,39 @@ const seed = async () => {
     await Grille.create({ ...GRILLE_DEMO, version: 1, statut: 'PUBLIEE', publieeLe: new Date() });
   }
 
-  return { zones: ZONES.length, centres: CENTRES.length, comptes: COMPTES_DEMO.length, grilles: 1 };
+  const missions = avecCampagne ? await creerCampagneDemo(zones, centres) : 0;
+  return { zones: ZONES.length, centres: CENTRES.length, comptes: COMPTES_DEMO.length, grilles: 1, missions };
+};
+
+/**
+ * Campagne démarrée avec une mission (et son évaluation planifiée) par centre.
+ * Créée une seule fois : si elle existe déjà, elle n'est pas modifiée (l'évaluateur a pu commencer la saisie).
+ */
+const creerCampagneDemo = async (zones, centres) => {
+  const existante = await Campagne.findOne({ nom: CAMPAGNE_DEMO.nom });
+  if (existante) return Mission.countDocuments({ campagne: existante._id });
+  const grille = await Grille.findOne({ code: GRILLE_DEMO.code, statut: 'PUBLIEE' });
+  const id = async (telephone) => (await Utilisateur.findOne({ telephone }))._id;
+  const debut = new Date();
+  debut.setHours(0, 0, 0, 0);
+  const campagne = await Campagne.create({
+    nom: CAMPAGNE_DEMO.nom, grille: grille._id, zone: zones[CAMPAGNE_DEMO.zone]._id, statut: 'EN_COURS',
+    dateDebut: debut, creePar: await id(CAMPAGNE_DEMO.coordonnateur),
+  });
+  const [evaluateur, superviseur] = [await id(CAMPAGNE_DEMO.evaluateur), await id(CAMPAGNE_DEMO.superviseur)];
+  for (const { centre: code, dansJours } of CAMPAGNE_DEMO.missions) {
+    const centre = centres[code];
+    const datePrevue = new Date(debut.getTime() + dansJours * 24 * 3600 * 1000);
+    const mission = await Mission.create({
+      campagne: campagne._id, centre: centre._id, zoneAncetres: centre.zoneAncetres,
+      datePrevue, evaluateurs: [evaluateur], superviseur,
+    });
+    await Evaluation.create({
+      mission: mission._id, campagne: campagne._id, centre: centre._id, zoneAncetres: centre.zoneAncetres,
+      grille: grille._id, grilleVersion: grille.version, statut: 'PLANIFIEE',
+    });
+  }
+  return CAMPAGNE_DEMO.missions.length;
 };
 
 module.exports = { seed, COMPTES_DEMO, MOT_DE_PASSE_DEMO };
@@ -116,8 +165,9 @@ if (require.main === module) {
   const connectDB = require('../config/db');
   (async () => {
     await connectDB();
-    const resume = await seed();
-    console.log(`Seed terminé : ${resume.zones} zones, ${resume.centres} centres, ${resume.comptes} comptes, ${resume.grilles} grille publiée.`);
+    const resume = await seed({ avecCampagne: true });
+    console.log(`Seed terminé : ${resume.zones} zones, ${resume.centres} centres, ${resume.comptes} comptes, ${resume.grilles} grille publiée, `
+      + `campagne « ${CAMPAGNE_DEMO.nom} » démarrée avec ${resume.missions} missions.`);
     console.log(`\nComptes de démonstration (mot de passe : ${MOT_DE_PASSE_DEMO})`);
     for (const c of COMPTES_DEMO) console.log(`  ${c.telephone}  ${c.role.padEnd(20)} ${c.prenom} ${c.nom}`);
     await mongoose.disconnect();

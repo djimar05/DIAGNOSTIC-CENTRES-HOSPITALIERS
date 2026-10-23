@@ -6,6 +6,7 @@ const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const { proteger, exigerMotDePasseAJour } = require('./middlewares/auth');
 const { limiteurApi } = require('./middlewares/rateLimit');
 const routes = require('./routes');
+const stockage = require('./services/stockageService');
 const { docsActives, routeurDocumentation } = require('./docs/swagger');
 
 const app = express();
@@ -65,6 +66,8 @@ const demarrer = async () => {
     server = app.listen(PORT, () => {
       console.log(`Serveur démarré sur http://localhost:${PORT}`);
     });
+    // Bucket MinIO (ou dossier local) créé s'il n'existe pas ; un échec est signalé sans bloquer l'API
+    stockage.verifierAuDemarrage();
   } catch (err) {
     console.error('Échec du démarrage (MongoDB inaccessible) :', err.message);
     process.exit(1);

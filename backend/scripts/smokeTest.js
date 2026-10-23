@@ -20,7 +20,7 @@ const verifier = (nom, condition, extra = '') => {
 };
 
 (async () => {
-  const mongod = await MongoMemoryServer.create();
+  const mongod = await MongoMemoryServer.create({ instance: { launchTimeout: 60000 } });
   process.env.MONGODB_URI = mongod.getUri('test-smoke');
   process.env.PORT = PORT;
   process.env.NODE_ENV = 'test';

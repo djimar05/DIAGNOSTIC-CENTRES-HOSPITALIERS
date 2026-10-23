@@ -6,8 +6,11 @@ import { couleurs, espace, STATUTS_EVALUATION } from '@/theme';
 import { formatDate } from '@/utils/format';
 
 /** Une mission dans la liste « Mes missions ». */
-export default function CarteMission({ mission, enRetard }: { mission: Mission; enRetard: boolean }) {
-  const statut = STATUTS_EVALUATION[mission.evaluation?.statut || 'PLANIFIEE'];
+export default function CarteMission({ mission, enRetard, aEnvoyer = 0 }: { mission: Mission; enRetard: boolean; aEnvoyer?: number }) {
+  // Des saisies attendent dans le coffre du téléphone : c'est l'état le plus important à montrer
+  const statut = aEnvoyer
+    ? { libelle: `À envoyer (${aEnvoyer})`, couleur: couleurs.alerte }
+    : STATUTS_EVALUATION[mission.evaluation?.statut || 'PLANIFIEE'];
   return (
     <Link href={{ pathname: '/mission/[id]', params: { id: mission._id } }} asChild>
       <Pressable style={({ pressed }) => [styles.carte, pressed && { opacity: 0.7 }]} accessibilityRole="button">

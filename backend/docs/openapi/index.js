@@ -5,7 +5,7 @@ const composants = require('./composants');
  * Spécification OpenAPI 3 de l'API, assemblée à partir d'un fichier par module.
  * Toute nouvelle route doit être décrite ici : scripts/testDocumentation.js échoue sinon.
  */
-const MODULES = ['comptes', 'referentiel', 'grilles', 'planification'].map((m) => require(`./${m}`));
+const MODULES = ['comptes', 'referentiel', 'grilles', 'planification', 'collecte'].map((m) => require(`./${m}`));
 
 const DESCRIPTION = `
 API de l'application de diagnostic des centres hospitaliers (web de supervision et application mobile de collecte).

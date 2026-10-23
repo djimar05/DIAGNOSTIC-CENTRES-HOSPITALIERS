@@ -13,4 +13,7 @@ module.exports = [
   { prefixe: '/grilles', routeur: require('./grilleRoutes') },
   { prefixe: '/campagnes', routeur: require('./campagneRoutes') },
   { prefixe: '/missions', routeur: require('./missionRoutes') },
+  { prefixe: '/mobile', routeur: require('./mobileRoutes') },
+  { prefixe: '/evaluations', routeur: require('./evaluationRoutes') },
+  { prefixe: '/fichiers', routeur: require('./fichierRoutes') },
 ];

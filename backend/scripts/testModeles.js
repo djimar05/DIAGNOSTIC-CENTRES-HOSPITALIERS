@@ -19,7 +19,7 @@ const verifier = async (nom, fn, doitEchouer = false) => {
 };
 
 (async () => {
-  const mongod = await MongoMemoryServer.create();
+  const mongod = await MongoMemoryServer.create({ instance: { launchTimeout: 60000 } });
   await mongoose.connect(mongod.getUri('test-modeles'));
 
   const M = {};

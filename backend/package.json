@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env index.js",
     "dev": "node --env-file-if-exists=.env --watch index.js",
-    "test": "node scripts/testModeles.js && node scripts/testScore.js && node scripts/testDocumentation.js && node scripts/testSeed.js && node scripts/smokeTest.js && node scripts/smokeTestAuth.js && node scripts/smokeTestDroits.js && node scripts/smokeTestComptes.js && node scripts/smokeTestReferentiel.js && node scripts/smokeTestGrilles.js && node scripts/smokeTestPlanification.js",
+    "test": "node scripts/testModeles.js && node scripts/testScore.js && node scripts/testDocumentation.js && node scripts/testSeed.js && node scripts/smokeTest.js && node scripts/smokeTestAuth.js && node scripts/smokeTestDroits.js && node scripts/smokeTestComptes.js && node scripts/smokeTestReferentiel.js && node scripts/smokeTestGrilles.js && node scripts/smokeTestPlanification.js && node scripts/smokeTestCollecte.js",
     "seed": "node --env-file-if-exists=.env scripts/seed.js",
     "creer-utilisateur": "node --env-file-if-exists=.env scripts/creerUtilisateur.js"
   },
@@ -21,6 +21,7 @@
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.1",
     "jsonwebtoken": "^9.0.3",
+    "minio": "^8.0.7",
     "mongoose": "^9.11.2",
     "multer": "^2.4.0",
     "swagger-ui-express": "^5.0.1"

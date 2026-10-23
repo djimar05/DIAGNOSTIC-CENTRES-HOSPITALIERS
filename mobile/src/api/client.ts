@@ -21,6 +21,30 @@ export class ErreurApi extends Error {
   }
 }
 
+/** Le serveur n'a pas pu être joint (pas de réseau, serveur arrêté, délai dépassé). */
+export class ErreurReseau extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ErreurReseau';
+  }
+}
+
+// Délai maximal d'une requête : sans lui, un envoi bloqué par un réseau instable ne rend jamais la main
+const DELAI_MS = 30_000;
+const DELAI_ENVOI_MS = 120_000; // photos
+
+const appeler = async (url: string, init: RequestInit, delai: number) => {
+  const controleur = new AbortController();
+  const minuterie = setTimeout(() => controleur.abort(), delai);
+  try {
+    return await fetch(url, { ...init, signal: controleur.signal });
+  } catch (err) {
+    throw new ErreurReseau(controleur.signal.aborted ? `délai de ${delai / 1000} s dépassé` : (err as Error).message);
+  } finally {
+    clearTimeout(minuterie);
+  }
+};
+
 /** Réponse standard de l'API : { success, data, pagination?, message? }. */
 export type Reponse<T> = { success: boolean; data: T; message?: string };
 
@@ -51,11 +75,11 @@ export const rafraichirJetons = () => {
     rafraichissementEnCours = (async () => {
       const refreshToken = await jetons.lireRefreshToken();
       if (!refreshToken) throw new ErreurApi(401, 'Session expirée, veuillez vous reconnecter');
-      const reponse = await fetch(`${API_URL}/auth/rafraichir`, {
+      const reponse = await appeler(`${API_URL}/auth/rafraichir`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ refreshToken }),
-      });
+      }, DELAI_MS);
       const { data } = await lireReponse<Reponse<{ accessToken: string; refreshToken: string }>>(reponse);
       await jetons.enregistrer(data);
     })()
@@ -71,10 +95,13 @@ export const rafraichirJetons = () => {
   return rafraichissementEnCours;
 };
 
-type Options = { methode?: string; corps?: unknown; authentifie?: boolean };
+type Options = { methode?: string; corps?: unknown; formulaire?: FormData; authentifie?: boolean };
 
-/** Appelle l'API ; `corps` est envoyé en JSON. Renvoie le corps JSON de la réponse. */
-export const requete = async <T>(chemin: string, { methode = 'GET', corps, authentifie = true }: Options = {}): Promise<T> => {
+/**
+ * Appelle l'API ; `corps` est envoyé en JSON, `formulaire` en multipart (photos).
+ * Renvoie le corps JSON de la réponse.
+ */
+export const requete = async <T>(chemin: string, { methode = 'GET', corps, formulaire, authentifie = true }: Options = {}): Promise<T> => {
   if (authentifie && !jetons.lireAccessToken() && await jetons.lireRefreshToken()) {
     await rafraichirJetons(); // application relancée : l'access token (en mémoire) est à redemander
   }
@@ -84,12 +111,10 @@ export const requete = async <T>(chemin: string, { methode = 'GET', corps, authe
     const headers: Record<string, string> = {};
     if (corps !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
-    return {
-      token,
-      promesse: fetch(`${API_URL}${chemin}`, {
-        method: methode, headers, ...(corps !== undefined && { body: JSON.stringify(corps) }),
-      }),
-    };
+    // Pas de Content-Type pour un FormData : la frontière multipart est ajoutée automatiquement
+    const body = formulaire ?? (corps !== undefined ? JSON.stringify(corps) : undefined);
+    const delai = formulaire ? DELAI_ENVOI_MS : DELAI_MS;
+    return { token, promesse: appeler(`${API_URL}${chemin}`, { method: methode, headers, ...(body !== undefined && { body }) }, delai) };
   };
 
   let { token, promesse } = envoyer();
@@ -109,10 +134,21 @@ export const api = {
   get: <T>(chemin: string) => requete<Reponse<T>>(chemin),
   post: <T>(chemin: string, corps?: unknown) => requete<Reponse<T>>(chemin, { methode: 'POST', corps }),
   patch: <T>(chemin: string, corps?: unknown) => requete<Reponse<T>>(chemin, { methode: 'PATCH', corps }),
+  delete: (chemin: string) => requete<null>(chemin, { methode: 'DELETE' }),
+  envoyer: <T>(chemin: string, formulaire: FormData) => requete<Reponse<T>>(chemin, { methode: 'POST', formulaire }),
+};
+
+/** En-têtes pour afficher une image protégée (<Image source={{ uri, headers }} />). */
+export const entetesAuth = () => {
+  const token = jetons.lireAccessToken();
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
 };
 
 /** Message lisible pour l'utilisateur (erreur de l'API ou coupure réseau). */
 export const messageErreur = (err: unknown) => {
   if (err instanceof ErreurApi) return err.details?.length ? `${err.message} : ${err.details.join(', ')}` : err.message;
-  return `Serveur injoignable (${API_URL}). Vérifiez votre connexion et que le téléphone est sur le même réseau que le serveur.`;
+  if (err instanceof ErreurReseau || !(err instanceof Error)) {
+    return `Serveur injoignable (${API_URL}). Vérifiez votre connexion et que le téléphone est sur le même réseau que le serveur.`;
+  }
+  return err.message; // erreur sur le téléphone (fichier, stockage…)
 };

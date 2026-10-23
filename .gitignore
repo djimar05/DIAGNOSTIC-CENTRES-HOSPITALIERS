@@ -6,6 +6,9 @@ node_modules/
 .env.*
 !.env.example
 
+# Photos et documents de preuve stockés en local (STOCKAGE=local)
+backend/stockage/
+
 # Builds
 dist/
 build/

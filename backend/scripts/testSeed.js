@@ -24,12 +24,12 @@ const verifier = (nom, condition, extra = '') => {
 };
 
 (async () => {
-  const mongod = await MongoMemoryServer.create();
+  const mongod = await MongoMemoryServer.create({ instance: { launchTimeout: 60000 } });
   await mongoose.connect(mongod.getUri('test-seed'));
   await Promise.all([Zone, Centre, Utilisateur, Affectation].map((m) => m.init()));
 
-  const resume = await seed();
-  await seed(); // deuxième passage : ne doit rien dupliquer
+  const resume = await seed({ avecCampagne: true });
+  await seed({ avecCampagne: true }); // deuxième passage : ne doit rien dupliquer
 
   const [nbZones, nbCentres, nbUtilisateurs, nbAffectations] = await Promise.all([
     Zone.countDocuments(), Centre.countDocuments(), Utilisateur.countDocuments(), Affectation.countDocuments(),
@@ -59,6 +59,21 @@ const verifier = (nom, condition, extra = '') => {
     respCentre.centre.equals(centre._id) && respCentre.zone.equals(district._id));
   const admin = await Affectation.findOne({ role: 'ADMINISTRATEUR' });
   verifier('administrateur national', !admin.zone && !admin.centre);
+
+  // Campagne de démonstration : visible sur le téléphone de l'évaluateur
+  const Campagne = require('../models/Campagne');
+  const Evaluation = require('../models/Evaluation');
+  const { mesMissions } = require('../services/collecteService');
+  const campagnes = await Campagne.find().lean();
+  verifier('une campagne démarrée, sans doublon', campagnes.length === 1 && campagnes[0].statut === 'EN_COURS'
+    && campagnes[0].grille.equals(grilles[0]._id));
+  const evaluations = await Evaluation.find().lean();
+  verifier('une évaluation planifiée par mission, sans doublon', resume.missions === 2 && evaluations.length === 2
+    && evaluations.every((e) => e.statut === 'PLANIFIEE'));
+  const ali = await Utilisateur.findOne({ telephone: '+235660000103' });
+  const { missions: missionsAli } = await mesMissions({ utilisateur: ali });
+  verifier("l'évaluateur voit ses 2 missions", missionsAli.length === 2, `n=${missionsAli.length}`);
+  verifier('superviseure renseignée sur les missions', missionsAli.every((m) => m.superviseur?.telephone === '+235660000104'));
 
   process.env.NODE_ENV = 'production';
   let refuse = false;
