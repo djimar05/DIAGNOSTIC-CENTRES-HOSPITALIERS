@@ -10,10 +10,10 @@ import { Alerte, Bouton, EcranCentre } from '@/composants/ui';
 import * as fileAttente from '@/hors-ligne/fileAttente';
 import { useFileAttente } from '@/hors-ligne/SynchroProvider';
 import { couleurs, espace } from '@/theme';
-import { debutDuJour, nomComplet } from '@/utils/format';
+import { jourPasse, nomComplet } from '@/utils/format';
 
 const statutDe = (m: Mission) => m.evaluation?.statut || 'PLANIFIEE';
-const estEnRetard = (m: Mission) => statutDe(m) === 'PLANIFIEE' && Boolean(m.datePrevue) && new Date(m.datePrevue!) < debutDuJour();
+const estEnRetard = (m: Mission) => statutDe(m) === 'PLANIFIEE' && Boolean(m.datePrevue) && jourPasse(m.datePrevue!);
 
 /** Répartit les missions par ce que l'évaluateur doit en faire. */
 const sections = (missions: Mission[]) => [

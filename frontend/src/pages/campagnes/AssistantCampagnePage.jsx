@@ -13,7 +13,7 @@ import EnTetePage from '../../composants/EnTetePage';
 import SelectZone from '../../composants/SelectZone';
 import { LIBELLES_NIVEAUX_CENTRE } from '../../constantes/referentiel';
 import { messageErreur } from '../../utils/erreurs';
-import { formatDate } from '../../utils/format';
+import { formatDate, formatDatePrevue } from '../../utils/format';
 import ChampsEquipe from './ChampsEquipe';
 import SelectionCentres from './SelectionCentres';
 
@@ -185,7 +185,7 @@ export default function AssistantCampagnePage() {
                 : 'À affecter plus tard'}
             </Ligne>
             <Ligne libelle="Superviseur">{intervenants?.superviseurs.find((u) => u._id === v.superviseur)?.nom}</Ligne>
-            <Ligne libelle="Visite prévue">{v.datePrevue && formatDate(v.datePrevue)}</Ligne>
+            <Ligne libelle="Visite prévue">{v.datePrevue && formatDatePrevue(v.datePrevue)}</Ligne>
             <Alert mt="sm" variant="light">
               <List size="sm">
                 <List.Item>La campagne est créée <b>en préparation</b> : rien n'est encore envoyé aux évaluateurs.</List.Item>

@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { AppState } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import * as authApi from '@/api/auth';
-import { ErreurApi, surDeconnexionForcee } from '@/api/client';
+import { ErreurApi, ErreurReseau, messageErreur, surDeconnexionForcee } from '@/api/client';
 import type { Profil, Role } from '@/api/types';
 import * as fileAttente from '@/hors-ligne/fileAttente';
 import * as verrou from './verrou';
@@ -20,6 +20,7 @@ type EtatPin = 'inconnu' | 'absent' | 'defini';
 
 type ValeurAuth = {
   etat: Etat;
+  erreur: string | null;
   utilisateur: Profil | null;
   pin: EtatPin;
   verrouille: boolean;
@@ -42,11 +43,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [pin, setPin] = useState<EtatPin>('inconnu');
   const [verrouille, setVerrouille] = useState(false);
   const [essais, setEssais] = useState(0);
+  const [erreur, setErreur] = useState<string | null>(null); // raison de l'état hors-ligne
   const passeEnArrierePlan = useRef<number | null>(null);
 
   /** Charge le profil ; `verrouiller` : demander le PIN (reprise de session, pas après un mot de passe). */
   const chargerProfil = useCallback(async (verrouiller = false) => {
     try {
+      setErreur(null);
       const profil = await authApi.moi();
       const aUnPin = await verrou.pinDefini(profil._id);
       setUtilisateur(profil);
@@ -59,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUtilisateur(null);
         setEtat('deconnecte');
       } else {
+        setErreur(err instanceof ErreurApi ? `Erreur du serveur (${err.status}) : ${messageErreur(err)}`
+          : err instanceof ErreurReseau ? `Serveur injoignable : ${err.message}` : `Erreur sur le téléphone : ${messageErreur(err)}`);
         setEtat('hors-ligne');
       }
     }
@@ -139,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const valeur = useMemo<ValeurAuth>(() => ({
     etat,
+    erreur,
     utilisateur,
     pin,
     verrouille,
@@ -150,7 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     definirPin,
     deverrouiller,
     aLeRole: (...roles) => Boolean(utilisateur?.roles.some((r) => roles.includes(r))),
-  }), [etat, utilisateur, pin, verrouille, essais, connecter, deconnecter, changerMotDePasse, chargerProfil, definirPin, deverrouiller]);
+  }), [etat, erreur, utilisateur, pin, verrouille, essais, connecter, deconnecter, changerMotDePasse, chargerProfil, definirPin, deverrouiller]);
 
   return <AuthContext.Provider value={valeur}>{children}</AuthContext.Provider>;
 }

@@ -148,6 +148,17 @@ const verifier = (nom, condition, extra = '') => {
   verifier('avancement : détail par zone', r.parZone.length === 1 && r.parZone[0].zone.code === 'DS-01-01' && r.parZone[0].total === 3);
   r = await data(await coord('GET', `/missions?campagne=${camp._id}&enRetard=true`));
   verifier('missions en retard', r.length === 3 && r[0].evaluation.statut === 'PLANIFIEE' && r[0].centre.zone.nom);
+
+  // Visite prévue aujourd'hui : pas encore en retard (jour calendaire, stocké à minuit UTC, quel que soit le fuseau)
+  const j = new Date();
+  const aujourdhui = `${j.getFullYear()}-${String(j.getMonth() + 1).padStart(2, '0')}-${String(j.getDate()).padStart(2, '0')}`;
+  rep = await coord('PATCH', `/missions/${toutes[0]}`, { datePrevue: `${aujourdhui}T15:30:00+01:00` });
+  verifier('date prévue ramenée au jour (minuit UTC)', (await data(rep)).datePrevue === `${aujourdhui}T00:00:00.000Z`);
+  r = await data(await coord('GET', `/campagnes/${camp._id}/avancement`));
+  verifier('visite prévue aujourd\'hui : pas en retard (avancement)', r.enRetard === 2, `enRetard=${r.enRetard}`);
+  r = await data(await coord('GET', `/missions?campagne=${camp._id}&enRetard=true`));
+  verifier('visite prévue aujourd\'hui : pas en retard (filtre)', r.length === 2 && !r.some((m) => m._id === toutes[0]));
+  await coord('PATCH', `/missions/${toutes[0]}`, { datePrevue: hier });
   r = await data(await coord('GET', `/missions?du=${hier}&au=${hier}T23:59:59`));
   verifier('calendrier : missions du jour', r.length === 3);
   r = await data(await evalA('GET', '/missions'));

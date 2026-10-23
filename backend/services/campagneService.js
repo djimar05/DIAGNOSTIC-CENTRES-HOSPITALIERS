@@ -7,6 +7,7 @@ const ApiError = require('../middlewares/ApiError');
 const droitsService = require('./droitsService');
 const equipeService = require('./equipeService');
 const perimetre = require('./perimetrePlanification');
+const { jourCalendaire, aujourdhuiCalendaire } = require('../utils/dates');
 
 /**
  * Campagne : PREPARATION → EN_COURS → CLOTUREE.
@@ -17,7 +18,6 @@ const perimetre = require('./perimetrePlanification');
  */
 
 const STATUTS_EVALUATION_TERMINES = ['VALIDEE', 'PUBLIEE', 'ANNULEE'];
-const debutDuJour = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 /** Campagne visible par l'utilisateur, sinon 404. */
 const obtenirCampagne = async (req, id, { peupler = false } = {}) => {
@@ -173,7 +173,7 @@ const ajouterMissions = async (req, id, { centres = [], evaluateurs = [], superv
     if (!perimetre.peutGerer(req, { zoneAncetres: centre.zoneAncetres, centre: centre._id })) { refuser('en dehors de votre périmètre'); continue; }
     if (grille.niveauxCibles?.length && !grille.niveauxCibles.includes(centre.niveau)) { refuser('niveau de centre non visé par la grille'); continue; }
 
-    const mission = new Mission({ campagne: campagne._id, centre: centre._id, zoneAncetres: centre.zoneAncetres, datePrevue });
+    const mission = new Mission({ campagne: campagne._id, centre: centre._id, zoneAncetres: centre.zoneAncetres, datePrevue: datePrevue ? jourCalendaire(datePrevue) : undefined });
     if (verifierEquipe) {
       const problemes = verifierEquipe(centre);
       if (problemes.length) resultat.avertissements.push(`${centre.code} : créé sans équipe (${problemes.join(' ; ')})`);
@@ -201,7 +201,7 @@ const avancementCampagne = async (req, id) => {
   const statuts = new Map((await Evaluation.find({ mission: { $in: missions.map((m) => m._id) } }).select('mission statut').lean())
     .map((e) => [String(e.mission), e.statut]));
 
-  const aujourdhui = debutDuJour();
+  const aujourdhui = aujourdhuiCalendaire();
   const parStatut = {};
   const parZone = new Map();
   let sansEquipe = 0; let sansDate = 0; let enRetard = 0;

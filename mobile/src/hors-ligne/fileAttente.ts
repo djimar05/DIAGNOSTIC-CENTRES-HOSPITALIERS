@@ -1,5 +1,5 @@
 import * as Crypto from 'expo-crypto';
-import { File, Paths } from 'expo-file-system';
+import { File } from 'expo-file-system';
 import { api, ErreurApi, ErreurReseau, messageErreur } from '@/api/client';
 import type { Reponse } from '@/api/types';
 import * as coffre from './coffre';
@@ -107,29 +107,22 @@ const estRefus = (err: unknown) => err instanceof ErreurApi && err.status >= 400
 const envoyerPhoto = async (e: ElementPhoto) => {
   const octets = await coffre.lire(nomPhoto(e.id));
   if (!octets) throw new ErreurApi(410, 'Photo introuvable dans le coffre');
-  // Copie déchiffrée temporaire, le temps de l'envoi, puis supprimée
-  const temporaire = new File(Paths.cache, `envoi-${e.id}.jpg`);
-  if (!temporaire.exists) temporaire.create();
-  temporaire.write(octets);
-  try {
-    const formulaire = new FormData();
-    formulaire.append('evaluation', e.evaluationId);
-    formulaire.append('critereCode', e.critereCode);
-    formulaire.append('clientId', e.clientId);
-    formulaire.append('prisLe', e.prisLe);
-    if (e.gps) {
-      formulaire.append('longitude', String(e.gps.longitude));
-      formulaire.append('latitude', String(e.gps.latitude));
-      if (e.gps.precision) formulaire.append('precision', String(e.gps.precision));
-    }
-    formulaire.append('fichier', { uri: temporaire.uri, name: `${e.critereCode}.jpg`, type: 'image/jpeg' } as unknown as Blob);
-    const { data } = await api.envoyer<{ _id: string }>('/fichiers', formulaire);
-    index.correspondances[`${PREFIXE_LOCAL}${e.id}`] = data._id;
-    index.elements.forEach((x) => { if (x.type === 'reponse') x.reponse.fichiers = resoudre(x.reponse.fichiers); });
-    coffre.supprimer(nomPhoto(e.id));
-  } finally {
-    if (temporaire.exists) temporaire.delete();
+  const formulaire = new FormData();
+  formulaire.append('evaluation', e.evaluationId);
+  formulaire.append('critereCode', e.critereCode);
+  formulaire.append('clientId', e.clientId);
+  formulaire.append('prisLe', e.prisLe);
+  if (e.gps) {
+    formulaire.append('longitude', String(e.gps.longitude));
+    formulaire.append('latitude', String(e.gps.latitude));
+    if (e.gps.precision) formulaire.append('precision', String(e.gps.precision));
   }
+  // Le fetch d'Expo n'accepte pas { uri } : on lui donne les octets déchiffrés (jamais écrits en clair sur le disque)
+  formulaire.append('fichier', { name: `${e.critereCode}.jpg`, type: 'image/jpeg', bytes: async () => octets } as unknown as Blob);
+  const { data } = await api.envoyer<{ _id: string }>('/fichiers', formulaire);
+  index.correspondances[`${PREFIXE_LOCAL}${e.id}`] = data._id;
+  index.elements.forEach((x) => { if (x.type === 'reponse') x.reponse.fichiers = resoudre(x.reponse.fichiers); });
+  coffre.supprimer(nomPhoto(e.id));
 };
 
 const envoyerReponse = async (e: ElementReponse) => {

@@ -39,7 +39,9 @@ const appeler = async (url: string, init: RequestInit, delai: number) => {
   try {
     return await fetch(url, { ...init, signal: controleur.signal });
   } catch (err) {
-    throw new ErreurReseau(controleur.signal.aborted ? `délai de ${delai / 1000} s dépassé` : (err as Error).message);
+    const cause = controleur.signal.aborted ? `délai de ${delai / 1000} s dépassé` : String((err as Error)?.message ?? err);
+    console.warn(`[api] ${init.method || 'GET'} ${url} : échec réseau (${cause})`); // visible dans le terminal de Metro
+    throw new ErreurReseau(cause);
   } finally {
     clearTimeout(minuterie);
   }
@@ -148,7 +150,8 @@ export const entetesAuth = () => {
 export const messageErreur = (err: unknown) => {
   if (err instanceof ErreurApi) return err.details?.length ? `${err.message} : ${err.details.join(', ')}` : err.message;
   if (err instanceof ErreurReseau || !(err instanceof Error)) {
-    return `Serveur injoignable (${API_URL}). Vérifiez votre connexion et que le téléphone est sur le même réseau que le serveur.`;
+    const cause = err instanceof Error ? ` [${err.message}]` : '';
+    return `Serveur injoignable (${API_URL})${cause}. Vérifiez votre connexion et que le téléphone est sur le même réseau que le serveur.`;
   }
   return err.message; // erreur sur le téléphone (fichier, stockage…)
 };

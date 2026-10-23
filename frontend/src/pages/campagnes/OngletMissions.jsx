@@ -8,7 +8,7 @@ import { useModifierMission, useSupprimerMission } from '../../api/campagnes';
 import { STATUTS_EVALUATION, estEnRetard, nomsEquipe } from '../../constantes/planification';
 import { COULEURS_CLASSES } from '../../constantes/referentiel';
 import { notifierErreur, notifierSucces } from '../../utils/erreurs';
-import { formatDate } from '../../utils/format';
+import { formatDatePrevue } from '../../utils/format';
 
 const FILTRES = [
   { value: 'toutes', label: 'Toutes' },
@@ -96,7 +96,7 @@ export default function OngletMissions({ missions, chargement, gestion, cloturee
                     </Table.Td>
                     <Table.Td><Text size="sm">{m.centre.zone?.nom}</Text></Table.Td>
                     <Table.Td>
-                      {m.datePrevue ? <Text size="sm" c={retard ? 'red' : undefined} fw={retard ? 600 : undefined}>{formatDate(m.datePrevue)}{retard ? ' · en retard' : ''}</Text>
+                      {m.datePrevue ? <Text size="sm" c={retard ? 'red' : undefined} fw={retard ? 600 : undefined}>{formatDatePrevue(m.datePrevue)}{retard ? ' · en retard' : ''}</Text>
                         : <Text size="sm" c="orange">À planifier</Text>}
                     </Table.Td>
                     <Table.Td>{m.evaluateurs.length ? <Text size="sm">{nomsEquipe(m.evaluateurs)}</Text> : <Badge color="orange" variant="light">Sans équipe</Badge>}</Table.Td>

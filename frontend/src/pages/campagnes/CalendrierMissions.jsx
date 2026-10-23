@@ -6,6 +6,8 @@ import { STATUTS_EVALUATION, estEnRetard, nomsEquipe } from '../../constantes/pl
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 const formatMois = new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' });
 const cleJour = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+// Date de visite : jour du calendrier stocké à minuit UTC → on lit ses composantes UTC (voir formatDatePrevue)
+const cleJourPrevu = (iso) => { const d = new Date(iso); return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`; };
 const MAX_PAR_JOUR = 3;
 
 /** Les 6 semaines (lundi → dimanche) qui couvrent le mois. */
@@ -29,7 +31,7 @@ export default function CalendrierMissions({ missions, onChoisir }) {
 
   const parJour = useMemo(() => {
     const groupes = new Map();
-    datees.forEach((m) => { const k = cleJour(new Date(m.datePrevue)); groupes.set(k, [...(groupes.get(k) || []), m]); });
+    datees.forEach((m) => { const k = cleJourPrevu(m.datePrevue); groupes.set(k, [...(groupes.get(k) || []), m]); });
     return groupes;
   }, [datees]);
 

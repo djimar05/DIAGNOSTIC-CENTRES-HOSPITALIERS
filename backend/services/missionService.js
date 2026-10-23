@@ -4,6 +4,7 @@ const Mission = require('../models/Mission');
 const ApiError = require('../middlewares/ApiError');
 const equipeService = require('./equipeService');
 const perimetre = require('./perimetrePlanification');
+const { jourCalendaire, aujourdhuiCalendaire } = require('../utils/dates');
 
 /**
  * Missions : un centre à visiter dans une campagne, avec son équipe et sa date prévue.
@@ -11,7 +12,6 @@ const perimetre = require('./perimetrePlanification');
  */
 
 const STATUTS_EVALUATION_FIGES = ['VALIDEE', 'PUBLIEE', 'ANNULEE'];
-const debutDuJour = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
 
 const PEUPLEMENT = [
   { path: 'centre', select: 'code nom niveau zone', populate: { path: 'zone', select: 'nom code' } },
@@ -48,7 +48,7 @@ const listerMissions = async (req, {
   if (sansDate === 'true') conditions.push({ datePrevue: null, statut: { $ne: 'ANNULEE' } });
   if (enRetard === 'true') {
     const nonCommencees = await Evaluation.distinct('mission', { statut: { $in: ['PLANIFIEE', 'EN_COURS'] } });
-    conditions.push({ datePrevue: { $lt: debutDuJour() }, statut: { $ne: 'ANNULEE' }, _id: { $in: nonCommencees } });
+    conditions.push({ datePrevue: { $lt: aujourdhuiCalendaire() }, statut: { $ne: 'ANNULEE' }, _id: { $in: nonCommencees } });
   }
   const missions = await Mission.find({ $and: conditions })
     .populate(PEUPLEMENT)
@@ -91,7 +91,7 @@ const appliquerEquipe = async (mission, evaluation, { evaluateurs, superviseur, 
   }
   if (typeof evaluateurs !== 'undefined') mission.evaluateurs = evaluateurs;
   if (typeof superviseur !== 'undefined') mission.superviseur = superviseur || undefined;
-  if (typeof datePrevue !== 'undefined') mission.datePrevue = datePrevue || undefined;
+  if (typeof datePrevue !== 'undefined') mission.datePrevue = datePrevue ? jourCalendaire(datePrevue) : undefined;
 
   const centre = { _id: mission.centre, zoneAncetres: mission.zoneAncetres };
   const problemes = verifierEquipe(centre);

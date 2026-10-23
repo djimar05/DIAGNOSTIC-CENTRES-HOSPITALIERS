@@ -19,6 +19,7 @@ const Grille = require('../models/Grille');
 const Campagne = require('../models/Campagne');
 const Mission = require('../models/Mission');
 const Evaluation = require('../models/Evaluation');
+const { aujourdhuiCalendaire } = require('../utils/dates');
 const GRILLE_DEMO = require('../donnees/grille-demo.json');
 
 // Campagne de démonstration (démarrée) : centres du District A visés par la grille
@@ -136,8 +137,7 @@ const creerCampagneDemo = async (zones, centres) => {
   if (existante) return Mission.countDocuments({ campagne: existante._id });
   const grille = await Grille.findOne({ code: GRILLE_DEMO.code, statut: 'PUBLIEE' });
   const id = async (telephone) => (await Utilisateur.findOne({ telephone }))._id;
-  const debut = new Date();
-  debut.setHours(0, 0, 0, 0);
+  const debut = aujourdhuiCalendaire(); // dates de visite : jour calendaire à minuit UTC (voir utils/dates)
   const campagne = await Campagne.create({
     nom: CAMPAGNE_DEMO.nom, grille: grille._id, zone: zones[CAMPAGNE_DEMO.zone]._id, statut: 'EN_COURS',
     dateDebut: debut, creePar: await id(CAMPAGNE_DEMO.coordonnateur),

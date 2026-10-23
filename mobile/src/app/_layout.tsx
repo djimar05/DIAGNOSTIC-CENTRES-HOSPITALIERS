@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import EcranVerrou from '@/composants/EcranVerrou';
 import { Bouton, EcranCentre } from '@/composants/ui';
+import { API_URL } from '@/config';
 import { SynchroProvider } from '@/hors-ligne/SynchroProvider';
 import { couleurs } from '@/theme';
 
@@ -19,7 +20,7 @@ import { couleurs } from '@/theme';
  * L'écran de verrouillage (PIN) recouvre l'application sans perdre la navigation en cours.
  */
 function Navigation() {
-  const { etat, utilisateur, pin, verrouille, recharger, deconnecter } = useAuth();
+  const { etat, erreur, utilisateur, pin, verrouille, recharger, deconnecter } = useAuth();
 
   if (etat === 'chargement') {
     return <EcranCentre><ActivityIndicator size="large" color={couleurs.primaire} /></EcranCentre>;
@@ -27,10 +28,9 @@ function Navigation() {
   if (etat === 'hors-ligne') {
     return (
       <EcranCentre>
-        <Text style={{ fontSize: 18, fontWeight: '600', textAlign: 'center' }}>Serveur injoignable</Text>
-        <Text style={{ textAlign: 'center', color: couleurs.texteSecondaire }}>
-          Vérifiez votre connexion internet. La saisie hors ligne arrivera dans une prochaine version.
-        </Text>
+        <Text style={{ fontSize: 18, fontWeight: '600', textAlign: 'center' }}>Impossible de charger votre session</Text>
+        <Text selectable style={{ textAlign: 'center', color: couleurs.erreur }}>{erreur}</Text>
+        <Text selectable style={{ textAlign: 'center', color: couleurs.texteSecondaire, fontSize: 12 }}>Adresse appelée : {API_URL}</Text>
         <Bouton titre="Réessayer" onPress={recharger} />
         <Bouton titre="Se déconnecter" variante="secondaire" onPress={deconnecter} />
       </EcranCentre>
