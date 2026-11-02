@@ -73,7 +73,8 @@ const COMPTES_DEMO = [
  * avecCampagne : ajoute la campagne démarrée (npm run seed) ; les tests la laissent de côté pour créer les leurs.
  */
 const seed = async ({ avecCampagne = false } = {}) => {
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV ===
+     'production') {
     throw new Error('Le seed de démonstration est interdit en production');
   }
 
